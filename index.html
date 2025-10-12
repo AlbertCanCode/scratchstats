@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch Stats Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Scratch Stats Dashboard</h1>
+    <p>Enter a Scratch username:</p>
+    <form id="statsForm">
+        <input type="text" id="username" name="username" placeholder="e.g. griffpatch">
+        <button type="submit">Get Stats</button>
+    </form>
+    <div id="stats"></div>
+
+    <script>
+        const form = document.getElementById("statsForm");
+        const statsDiv = document.getElementById("stats");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value.trim();
+            statsDiv.textContent = "Loading...";
+            try {
+                const res = await fetch("/stats", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `username=${encodeURIComponent(username)}`
+                });
+                const data = await res.json();
+                if (data.error) {
+                    statsDiv.textContent = "❌ " + data.error;
+                    return;
+                }
+
+                statsDiv.innerHTML = `
+                    <p><strong>Username:</strong> ${data.username}</p>
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Joined:</strong> ${data.joined}</p>
+                    <p><strong>Country:</strong> ${data.country}</p>
+                    <p><strong>Followers:</strong> ${data.followers}</p>
+                    <p><strong>Following:</strong> ${data.following}</p>
+                    <p><strong>Views:</strong> ${data.views}</p>
+                    <p><strong>Loves:</strong> ${data.loves}</p>
+                    <p><strong>Favorites:</strong> ${data.favorites}</p>
+                    <p><a href="https://scratch.mit.edu/users/${data.username}" target="_blank">View Profile ↗️</a></p>
+                `;
+            } catch (err) {
+                statsDiv.textContent = "❌ Error loading data. Try again.";
+            }
+        });
+    </script>
+</body>
+</html>
