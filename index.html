@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scratch Stats Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Scratch Stats Dashboard</h1>
-    <p>Enter a Scratch username:</p>
+    <p>Enter a Scratch username below 👇</p>
+
     <form id="statsForm">
-        <input type="text" id="username" name="username" placeholder="e.g. griffpatch">
+        <input type="text" id="username" name="username" placeholder="e.g. griffpatch" required>
         <button type="submit">Get Stats</button>
     </form>
+
     <div id="stats"></div>
 
     <script>
@@ -23,6 +25,7 @@
             e.preventDefault();
             const username = document.getElementById("username").value.trim();
             statsDiv.textContent = "Loading...";
+
             try {
                 const res = await fetch("/stats", {
                     method: "POST",
@@ -30,6 +33,7 @@
                     body: `username=${encodeURIComponent(username)}`
                 });
                 const data = await res.json();
+
                 if (data.error) {
                     statsDiv.textContent = "❌ " + data.error;
                     return;
@@ -48,6 +52,7 @@
                     <p><a href="https://scratch.mit.edu/users/${data.username}" target="_blank">View Profile ↗️</a></p>
                 `;
             } catch (err) {
+                console.error(err);
                 statsDiv.textContent = "❌ Error loading data. Try again.";
             }
         });
