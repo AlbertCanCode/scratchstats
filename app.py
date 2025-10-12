@@ -1,11 +1,15 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template_string, request
 import requests
 
 app = Flask(__name__)
 
+# Read HTML from the file directly
+with open("index.html", "r") as f:
+    HTML = f.read()
+
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template_string(HTML)
 
 @app.route("/stats", methods=["POST"])
 def stats():
