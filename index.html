@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Scratch Stats Dashboard</h1>
-    <p>Enter a Scratch username below: 👇</p>
+    <p>Enter a Scratch username below 👇</p>
 
     <form id="statsForm">
         <input type="text" id="username" name="username" placeholder="e.g. griffpatch" required>
@@ -40,16 +40,24 @@
                 }
 
                 statsDiv.innerHTML = `
-                    <p><strong>Username:</strong> ${data.username}</p>
+                    <div class="profile">
+                        <img src="${data.profile_pic}" alt="Profile Picture">
+                        <h2>${data.username}</h2>
+                    </div>
                     <p><strong>ID:</strong> ${data.id}</p>
                     <p><strong>Joined:</strong> ${data.joined}</p>
                     <p><strong>Country:</strong> ${data.country}</p>
                     <p><strong>Followers:</strong> ${data.followers}</p>
                     <p><strong>Following:</strong> ${data.following}</p>
-                    <p><strong>Views:</strong> ${data.views}</p>
-                    <p><strong>Loves:</strong> ${data.loves}</p>
-                    <p><strong>Favorites:</strong> ${data.favorites}</p>
-                    <p><a href="https://scratch.mit.edu/users/${data.username}" target="_blank">View Profile ↗️</a></p>
+                    <p><strong>Total Projects:</strong> ${data.project_count}</p>
+                    <p><strong>Total Favorites:</strong> ${data.favorites_count}</p>
+                    <p><strong>Total Loves:</strong> ${data.total_loves}</p>
+                    <p><strong>Total Views:</strong> ${data.total_views}</p>
+                    ${
+                        data.most_loved
+                        ? `<p><strong>Most Loved Project:</strong> ${data.most_loved.title} - Loves: ${data.most_loved.loves}, Views: ${data.most_loved.views}, Favorites: ${data.most_loved.favorites} <a href="https://scratch.mit.edu/projects/${data.most_loved.id}" target="_blank">View ↗️</a></p>`
+                        : "<p>No projects found.</p>"
+                    }
                 `;
             } catch (err) {
                 console.error(err);
