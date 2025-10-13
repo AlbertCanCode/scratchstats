@@ -78,6 +78,10 @@ footer {
     text-align: center;
 }
 
+footer a {
+    color: #00ff9f;
+}
+
 h1 {
   font-size: 2.5rem;
   color: #00ff9f;
