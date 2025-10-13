@@ -66,7 +66,7 @@ button:hover {
   display: inline-block;
   text-align: left;
   max-width: 600px;
-  width: 90%; /* Added width for better responsiveness */
+  width: 90%;
 }
 
 #stats:empty {
@@ -77,8 +77,8 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-bottom: 1rem; /* Added padding */
-  border-bottom: 1px solid #333; /* Separator */
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #333;
   margin-bottom: 1rem;
 }
 
@@ -93,40 +93,75 @@ button:hover {
 .profile h2 {
   margin: 0;
   color: #00ff9f;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* --- New Grid Layout for Stats --- */
+/* 👈 Scratch Team Badge Style */
+.scratch-team-badge {
+    background-color: #f7a048; /* Scratch Orange/Gold */
+    color: #1a1a1a;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
 .user-info {
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #333;
 }
 
+/* 👈 Activity Section Style */
+.activity-section {
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #333;
+}
+
+.activity-section h4 {
+    margin: 0.8rem 0 0.4rem 0;
+    color: #00ff9f;
+    font-size: 1rem;
+}
+
+.activity-content {
+    background: #242424;
+    padding: 0.7rem;
+    border-radius: 8px;
+    font-style: italic;
+    color: #ccc;
+    white-space: pre-wrap; /* Preserves line breaks in user's text */
+    max-height: 150px;
+    overflow-y: auto;
+}
+
 .stats-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns for a balanced look */
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem 1rem;
-    margin-bottom: 1.5rem; /* Space before project highlights */
+    margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #333;
 }
 
 #stats p {
-  margin: 0; /* Remove default paragraph margin */
+  margin: 0;
   line-height: 1.6;
 }
 
-/* --- Project Highlights Container --- */
 .project-highlights-container {
     display: flex;
-    flex-direction: column; /* Stacked on small screens */
+    flex-direction: column;
     gap: 1.5rem;
     margin-top: 1.5rem;
 }
 
 @media (min-width: 500px) {
     .project-highlights-container {
-        flex-direction: row; /* Side-by-side on larger screens */
+        flex-direction: row;
         flex-wrap: wrap;
     }
 }
@@ -136,7 +171,7 @@ button:hover {
   background: #242424;
   padding: 1rem;
   border-radius: 10px;
-  flex: 1; /* Allows boxes to share space in the container */
+  flex: 1;
   min-width: 250px;
   box-shadow: 0 0 10px rgba(0, 255, 159, 0.1);
   text-align: center;
@@ -149,9 +184,22 @@ button:hover {
     margin-bottom: 0.8rem;
 }
 
+/* 👈 Project Thumbnail Style */
+.project-thumbnail {
+    width: 100%; /* Make it fill the box */
+    max-width: 144px; /* Standard Scratch thumbnail width */
+    height: auto;
+    border-radius: 6px;
+    margin-bottom: 0.8rem;
+    display: block; /* Center the image */
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #00ff9f;
+}
+
 .project-title {
     font-weight: bold;
-    margin-bottom: 0.8rem !important; /* Override p margin */
+    margin-bottom: 0.8rem !important;
 }
 
 .project-stats {
