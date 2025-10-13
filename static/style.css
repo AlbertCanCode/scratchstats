@@ -7,7 +7,7 @@ body {
   text-align: center;
   margin: 0;
   min-height: 100vh;
-  padding-top: 50px; /* Space for fixed navigation */
+  padding-top: 50px;
 }
 
 /* --- Navigation Styles --- */
@@ -17,12 +17,25 @@ nav {
     left: 0;
     width: 100%;
     background: #0d0d0d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+/* NEW: Centering Nav Container */
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto; /* Center the content */
     padding: 0.8rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+}
+
+@media (max-width: 600px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 }
 
 .nav-title {
@@ -34,7 +47,7 @@ nav {
 .nav-link {
     color: #ccc;
     text-decoration: none;
-    margin-left: 1.5rem;
+    margin-left: 1rem;
     padding: 0.3rem 0.5rem;
     border-radius: 4px;
     transition: 0.3s;
@@ -110,7 +123,6 @@ button:hover:not(:disabled) {
   transform: scale(1.05);
 }
 
-/* UX Improvement: Disabled Button Style */
 button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
@@ -236,16 +248,6 @@ button:disabled {
     margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #333;
-}
-
-/* Ratio Stat needs its own row */
-.ratio-stat {
-    grid-column: span 2;
-    text-align: center;
-    font-weight: bold;
-    background: rgba(0, 255, 159, 0.1);
-    padding: 0.3rem;
-    border-radius: 4px;
 }
 
 #stats p {
