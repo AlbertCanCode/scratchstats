@@ -47,19 +47,32 @@
                             <a href="https://scratch.mit.edu/users/${data.username}" target="_blank" class="profile-btn">View Profile ↗️</a>
                         </div>
                     </div>
-                    <p><strong>🆔 ID:</strong> ${data.id}</p>
-                    <p><strong>📅 Joined:</strong> ${data.joined}</p>
-                    <p><strong>🌍 Country:</strong> ${data.country}</p>
-                    <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
-                    <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
-                    <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
-                    <p><strong>⭐ Projects Faved:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
-                    <p><strong>✨ TOTAL FAVORITES RECEIVED:</strong> ${data.total_favorites_received.toLocaleString()}</p>
-                    <p><strong>❤️ TOTAL LOVES RECEIVED:</strong> ${data.total_loves.toLocaleString()}</p>
-                    <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
+                    
+                    <div class="user-info">
+                        <p><strong>🆔 ID:</strong> ${data.id}</p>
+                        <p><strong>📅 Joined:</strong> ${data.joined}</p>
+                        <p><strong>🌍 Country:</strong> ${data.country}</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
+                        <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
+                        <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
+                        <p><strong>⭐ Projects Faved:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
+                        <p><strong>✨ TOTAL FAVORITES RECEIVED:</strong> ${data.total_favorites_received.toLocaleString()}</p>
+                        <p><strong>❤️ TOTAL LOVES RECEIVED:</strong> ${data.total_loves.toLocaleString()}</p>
+                        <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
+                    </div>
+
+                    ${
+                        data.most_loved || data.most_viewed
+                        ? '<div class="project-highlights-container">'
+                        : ''
+                    }
+
                     ${
                         data.most_loved
-                        ? `<div class="most-loved">
+                        ? `<div class="project-box most-loved">
                             <h3>🏆 Most Loved Project</h3>
                             <p class="project-title">${data.most_loved.title}</p>
                             <div class="project-stats">
@@ -69,6 +82,27 @@
                             </div>
                             <a href="https://scratch.mit.edu/projects/${data.most_loved.id}" target="_blank" class="project-btn">View Project ↗️</a>
                         </div>`
+                        : ''
+                    }
+                    
+                    ${
+                        data.most_viewed
+                        ? `<div class="project-box most-viewed">
+                            <h3>👁️ Most Viewed Project</h3>
+                            <p class="project-title">${data.most_viewed.title}</p>
+                            <div class="project-stats">
+                                <span>👁️ ${data.most_viewed.views.toLocaleString()} Views</span>
+                                <span>❤️ ${data.most_viewed.loves.toLocaleString()} Loves</span>
+                                <span>⭐ ${data.most_viewed.favorites.toLocaleString()} Favorites</span>
+                            </div>
+                            <a href="https://scratch.mit.edu/projects/${data.most_viewed.id}" target="_blank" class="project-btn">View Project ↗️</a>
+                        </div>`
+                        : ''
+                    }
+
+                    ${
+                        data.most_loved || data.most_viewed
+                        ? '</div>'
                         : "<p>No projects found.</p>"
                     }
                 `;
