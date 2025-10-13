@@ -23,8 +23,8 @@
 
         <form id="statsForm" data-mode="{{ view_mode }}">
             <div class="input-group">
-                <input type="text" id="username1" name="username1" placeholder="Username 1" required>
-                <input type="text" id="username2" name="username2" placeholder="Username 2">
+                <input type="text" id="username1" name="username1" placeholder="ChessProKing-TM" required>
+                <input type="text" id="username2" name="username2" placeholder="griffpatch">
             </div>
             <button type="submit" id="submitBtn">Get Stats</button>
         </form>
@@ -45,20 +45,9 @@
         const header = document.getElementById("main-header");
         const subheader = document.getElementById("main-subheader");
         
-        const DEFAULT_USERNAME = "ChessProKing-TM";
-
-        // --- Setup View Mode, Navigation, and Button Text ---
+        // --- Setup View Mode and Navigation ---
         const username2Input = document.getElementById('username2');
 
-        function updateSubmitButtonText() {
-            if (viewMode === 'single') {
-                const currentUsername = username1Input.value.trim() || DEFAULT_USERNAME;
-                submitBtn.textContent = 'Get Stats for ' + currentUsername;
-            } else {
-                submitBtn.textContent = 'Get Stats';
-            }
-        }
-        
         if (viewMode === 'compare') {
             header.textContent = 'Compare Two Scratch Users';
             subheader.textContent = 'Enter the usernames you want to compare.';
@@ -66,14 +55,12 @@
             username2Input.required = true;
             document.getElementById('compare-link').classList.add('active');
         } else {
+            // SINGLE VIEW
+            header.textContent = 'Scratch Stats';
+            subheader.textContent = 'Enter a Scratch username below 👇';
             username2Input.style.display = 'none';
             username2Input.required = false;
             document.getElementById('single-link').classList.add('active');
-            
-            // Set initial button text for single mode
-            updateSubmitButtonText();
-            // Listen for input changes to update button text
-            username1Input.addEventListener('input', updateSubmitButtonText);
         }
         
         // --- Form Submission Handler (Handles both views) ---
@@ -82,6 +69,7 @@
             const username1 = username1Input.value.trim();
             const username2 = username2Input.value.trim();
             
+            // UX Improvement: Loading State and Button Disabling
             statsDiv.innerHTML = '<div class="loading-spinner"></div> Fetching data...';
             submitBtn.disabled = true;
             submitBtn.textContent = 'Fetching...';
@@ -89,14 +77,14 @@
             if (!username1) {
                 statsDiv.textContent = "❌ Please enter a username.";
                 submitBtn.disabled = false;
-                updateSubmitButtonText();
+                submitBtn.textContent = 'Get Stats'; // Fixed text
                 return;
             }
 
             if (viewMode === 'compare' && !username2) {
                 statsDiv.textContent = "❌ Please enter both usernames for comparison.";
                 submitBtn.disabled = false;
-                updateSubmitButtonText();
+                submitBtn.textContent = 'Get Stats'; // Fixed text
                 return;
             }
 
@@ -138,7 +126,7 @@
                 statsDiv.textContent = "❌ Network error. Please check your connection or try again.";
             } finally {
                 submitBtn.disabled = false;
-                updateSubmitButtonText();
+                submitBtn.textContent = 'Get Stats'; // Fixed text
             }
         });
         
