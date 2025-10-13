@@ -21,13 +21,13 @@ nav {
     z-index: 1000;
 }
 
-/* NEW: Centering Nav Container */
+/* Centering Nav Container and Links */
 .nav-container {
     max-width: 1200px;
-    margin: 0 auto; /* Center the content */
+    margin: 0 auto;
     padding: 0.8rem 2rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Center the links */
     align-items: center;
 }
 
@@ -38,10 +38,9 @@ nav {
     }
 }
 
-.nav-title {
-    font-weight: bold;
-    color: #00ff9f;
-    font-size: 1.2rem;
+.nav-links {
+    /* Ensure links stay grouped */
+    display: flex; 
 }
 
 .nav-link {
@@ -67,6 +66,16 @@ nav {
 
 .main-content {
     padding: 2rem;
+}
+
+/* NEW FOOTER STYLE */
+footer {
+    margin-top: 2rem;
+    padding: 1rem 0;
+    font-size: 0.8rem;
+    color: #888;
+    border-top: 1px solid #333;
+    text-align: center;
 }
 
 h1 {
