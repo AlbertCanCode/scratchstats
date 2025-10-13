@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch Stats</title>
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+    <h1>Scratch Stats Dashboard</h1>
+    <p>Enter a Scratch username below 👇</p>
+
+    <form id="statsForm">
+        <input type="text" id="username" name="username" placeholder="e.g. ChessProking-tm" required>
+        <button type="submit">Get Stats</button>
+    </form>
+
+    <div id="stats"></div>
+
+    <script>
+        const form = document.getElementById("statsForm");
+        const statsDiv = document.getElementById("stats");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value.trim();
+            statsDiv.textContent = "Loading...";
+
+            try {
+                const res = await fetch("/stats", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `username=${encodeURIComponent(username)}`
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    statsDiv.textContent = "❌ " + data.error;
+                    return;
+                }
+
+                statsDiv.innerHTML = `
+                    <div class="profile">
+                        <img src="${data.profile_pic}" alt="Profile Picture">
+                        <h2>${data.username}</h2>
+                    </div>
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Joined:</strong> ${data.joined}</p>
+                    <p><strong>Country:</strong> ${data.country}</p>
+                    <p><strong>Followers:</strong> ${data.followers}</p>
+                    <p><strong>Following:</strong> ${data.following}</p>
+                    <p><strong>Total Projects:</strong> ${data.project_count}</p>
+                    <p><strong>Total Favorites:</strong> ${data.favorites_count}</p>
+                    <p><strong>Total Loves:</strong> ${data.total_loves}</p>
+                    <p><strong>Total Views:</strong> ${data.total_views}</p>
+                    ${
+                        data.most_loved
+                        ? `<p><strong>Most Loved Project:</strong> ${data.most_loved.title} - Loves: ${data.most_loved.loves}, Views: ${data.most_loved.views}, Favorites: ${data.most_loved.favorites} <a href="https://scratch.mit.edu/projects/${data.most_loved.id}" target="_blank">View ↗️</a></p>`
+                        : "<p>No projects found.</p>"
+                    }
+                `;
+            } catch (err) {
+                console.error(err);
+                statsDiv.textContent = "❌ Error loading data. Try again.";
+            }
+        });
+    </script>
+</body>
+</html>
