@@ -7,30 +7,35 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>🐾 Scratch Stats Dashboard</h1>
-    <p>Enter a Scratch username to see their stats instantly!</p>
+    <h1>Scratch Stats Dashboard</h1>
+    <p>Enter a Scratch username below 👇</p>
 
     <form id="statsForm">
-        <input type="text" id="username" placeholder="Enter Scratch username..." required>
+        <input type="text" id="username" name="username" placeholder="e.g. griffpatch" required>
         <button type="submit">Get Stats</button>
     </form>
 
     <div id="stats"></div>
 
     <script>
-        document.getElementById('statsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const statsDiv = document.getElementById('stats');
+        const form = document.getElementById("statsForm");
+        const statsDiv = document.getElementById("stats");
 
-            statsDiv.innerHTML = `<p>Loading stats for <strong>${username}</strong>... ⏳</p>`;
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value.trim();
+            statsDiv.textContent = "Loading...";
 
             try {
-                const response = await fetch(`/stats?username=${encodeURIComponent(username)}`);
-                const data = await response.json();
+                const res = await fetch("/stats", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `username=${encodeURIComponent(username)}`
+                });
+                const data = await res.json();
 
                 if (data.error) {
-                    statsDiv.innerHTML = `<p style="color:red;">⚠️ ${data.error}</p>`;
+                    statsDiv.textContent = "❌ " + data.error;
                     return;
                 }
 
@@ -39,32 +44,24 @@
                         <img src="${data.profile_pic}" alt="Profile Picture">
                         <h2>${data.username}</h2>
                     </div>
-
-                    <div id="stat-grid">
-                        <div class="stat-card"><p><strong>ID:</strong> ${data.id}</p></div>
-                        <div class="stat-card"><p><strong>Joined:</strong> ${data.joined}</p></div>
-                        <div class="stat-card"><p><strong>Country:</strong> ${data.country}</p></div>
-                        <div class="stat-card"><p><strong>Followers:</strong> ${data.followers}</p></div>
-                        <div class="stat-card"><p><strong>Following:</strong> ${data.following}</p></div>
-                        <div class="stat-card"><p><strong>Total Projects:</strong> ${data.project_count}</p></div>
-                        <div class="stat-card"><p><strong>Total Favorites:</strong> ${data.favorites_count}</p></div>
-                        <div class="stat-card"><p><strong>Total Loves:</strong> ${data.total_loves}</p></div>
-                        <div class="stat-card"><p><strong>Total Views:</strong> ${data.total_views}</p></div>
-                    </div>
-
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Joined:</strong> ${data.joined}</p>
+                    <p><strong>Country:</strong> ${data.country}</p>
+                    <p><strong>Followers:</strong> ${data.followers}</p>
+                    <p><strong>Following:</strong> ${data.following}</p>
+                    <p><strong>Total Projects:</strong> ${data.project_count}</p>
+                    <p><strong>Total Favorites:</strong> ${data.favorites_count}</p>
+                    <p><strong>Total Loves:</strong> ${data.total_loves}</p>
+                    <p><strong>Total Views:</strong> ${data.total_views}</p>
                     ${
                         data.most_loved
-                        ? `<div class="most-loved">
-                            <p><strong>🔥 Most Loved Project:</strong> ${data.most_loved.title}</p>
-                            <p>Loves: ${data.most_loved.loves} | Views: ${data.most_loved.views} | Favorites: ${data.most_loved.favorites}</p>
-                            <a href="https://scratch.mit.edu/projects/${data.most_loved.id}" target="_blank">View Project ↗️</a>
-                           </div>`
-                        : "<p>No shared projects found.</p>"
+                        ? `<p><strong>Most Loved Project:</strong> ${data.most_loved.title} - Loves: ${data.most_loved.loves}, Views: ${data.most_loved.views}, Favorites: ${data.most_loved.favorites} <a href="https://scratch.mit.edu/projects/${data.most_loved.id}" target="_blank">View ↗️</a></p>`
+                        : "<p>No projects found.</p>"
                     }
                 `;
-            } catch (error) {
-                console.error(error);
-                statsDiv.innerHTML = `<p style="color:red;">❌ Error loading data. Make sure the username exists or try again later.</p>`;
+            } catch (err) {
+                console.error(err);
+                statsDiv.textContent = "❌ Error loading data. Try again.";
             }
         });
     </script>
