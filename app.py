@@ -49,6 +49,7 @@ def stats():
             "total_loves": total_loves,
             "total_favorites": total_favs,
             "total_views": total_views,
+            "profile_pic": f"https://uploads.scratch.mit.edu/get_image/user/{user.id}_60x60.png",
             "most_loved": {
                 "title": most_loved.title,
                 "loves": most_loved.loves,
