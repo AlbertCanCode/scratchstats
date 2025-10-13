@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scratch Stats Dashboard</title>
+    <title>Scratch Stats</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     
     <nav>
         <div class="nav-container">
-            <div class="nav-title">Scratch Stats Dashboard</div>
             <div class="nav-links">
                 <a href="/" id="single-link" class="nav-link">Single Search</a>
                 <a href="/compare" id="compare-link" class="nav-link">Compare Stats</a>
@@ -19,19 +18,23 @@
     </nav>
     
     <div class="main-content">
-        <h1 id="main-header">Scratch Stats Dashboard</h1>
+        <h1 id="main-header">Scratch Stats</h1>
         <p id="main-subheader">Enter a Scratch username below 👇</p>
 
         <form id="statsForm" data-mode="{{ view_mode }}">
             <div class="input-group">
-                <input type="text" id="username1" name="username1" placeholder="e.g. ChessProking-tm" required>
-                <input type="text" id="username2" name="username2" placeholder="Username 2 (optional)">
+                <input type="text" id="username1" name="username1" placeholder="Username 1" required>
+                <input type="text" id="username2" name="username2" placeholder="Username 2">
             </div>
             <button type="submit" id="submitBtn">Get Stats</button>
         </form>
 
         <div id="stats"></div>
     </div>
+
+    <footer>
+        Made by Scratch user chessproking-tm
+    </footer>
 
     <script>
         const form = document.getElementById("statsForm");
@@ -42,13 +45,17 @@
         const subheader = document.getElementById("main-subheader");
         
         // --- Setup View Mode and Navigation ---
+        const username2Input = document.getElementById('username2');
+
         if (viewMode === 'compare') {
             header.textContent = 'Compare Two Scratch Users';
             subheader.textContent = 'Enter the usernames you want to compare.';
-            document.getElementById('username2').style.display = 'block';
+            username2Input.style.display = 'block';
+            username2Input.required = true; // Make it required
             document.getElementById('compare-link').classList.add('active');
         } else {
-            document.getElementById('username2').style.display = 'none';
+            username2Input.style.display = 'none';
+            username2Input.required = false;
             document.getElementById('single-link').classList.add('active');
         }
         
@@ -58,22 +65,28 @@
             const username1 = document.getElementById("username1").value.trim();
             const username2 = document.getElementById("username2").value.trim();
             
-            // UX Improvement: Loading State and Button Disabling
             statsDiv.innerHTML = '<div class="loading-spinner"></div> Fetching data...';
             submitBtn.disabled = true;
             submitBtn.textContent = 'Fetching...';
 
             if (!username1) {
-                statsDiv.textContent = "❌ Please enter a username.";
+                statsDiv.textContent = "❌ Please enter at least one username.";
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Get Stats';
                 return;
             }
 
-            // Prepare the body for the API request
+            // NEW: Enforce username2 requirement on compare view
+            if (viewMode === 'compare' && !username2) {
+                statsDiv.textContent = "❌ Please enter both usernames for comparison.";
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Stats';
+                return;
+            }
+
             const params = new URLSearchParams();
             params.append('username1', username1);
-            if (viewMode === 'compare' && username2) {
+            if (username2) {
                 params.append('username2', username2);
             }
 
@@ -97,7 +110,7 @@
                 if (viewMode === 'compare' && (data.user1 && data.user2)) {
                     statsDiv.innerHTML = renderComparison(data.user1, data.user2, errors);
                 } else if (data.user1 && viewMode === 'compare') {
-                    statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "⚠️ Only one user found or the second user failed to load.");
+                    statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "⚠️ Only one user loaded. Comparison requires both users to be found.");
                 } else if (data.user1) {
                     statsDiv.innerHTML = renderSingle(data.user1, errors.user1);
                 } else {
@@ -113,8 +126,8 @@
             }
         });
         
-        // --- Reusable Rendering Functions (Modified for Recent Project and removed comments) ---
-        
+        // --- Reusable Rendering Functions (Remains unchanged from last step) ---
+
         function renderSingle(data, errorMsg, notice = '') {
             if (errorMsg) {
                 return `<div class="error-message">❌ ${errorMsg}</div>`;
@@ -198,7 +211,6 @@
             `;
         }
         
-        // Removed total comments
         function renderCoreStats(data) {
             return `
                 <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
@@ -211,7 +223,6 @@
             `;
         }
 
-        // Removed average comments and engagement score
         function renderAverageStats(data) {
             return `
                 <p><strong>❤️ Avg. Loves/Project:</strong> ${data.avg_loves.toFixed(2)}</p>
@@ -220,7 +231,6 @@
             `;
         }
 
-        // Project Highlights (Now uses most_recent)
         function renderProjectHighlights(data) {
             const hasProjects = data.most_loved || data.most_viewed || data.most_recent;
             if (!hasProjects) return "<p>No projects found.</p>";
@@ -234,7 +244,6 @@
             `;
         }
         
-        // Comparison View Project Summary (Now uses most_recent)
         function renderTopProjectComparison(data) {
             const m_loved = data.most_loved;
             const m_viewed = data.most_viewed;
@@ -252,13 +261,11 @@
             `;
         }
 
-        // Helper function for project boxes
         function renderProjectBox(project, title, metricLabel, metricKey, ...otherKeys) {
             if (!project) return '';
             
             let statsHtml = '';
             
-            // Special handling for Most Recent, which doesn't have a single "score" stat
             if (metricKey === 'id') {
                  statsHtml = `<span>${metricLabel} (ID ${project.id})</span>`;
             } else {
