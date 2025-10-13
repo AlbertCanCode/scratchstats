@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-# Read HTML from the file directly
+# Read HTML from index.html
 with open("index.html", "r") as f:
     HTML = f.read()
 
@@ -13,7 +13,7 @@ def index():
 
 @app.route("/stats", methods=["POST"])
 def stats():
-    username = request.form.get("username").strip()
+    username = request.form.get("username", "").strip()
     if not username:
         return {"error": "Please enter a username"}, 400
 
@@ -24,16 +24,17 @@ def stats():
             return {"error": "User not found"}, 404
 
         data = response.json()
+
         stats_data = {
             "username": data.get("username"),
             "id": data.get("id"),
             "joined": data.get("history", {}).get("joined"),
-            "followers": data.get("profile", {}).get("stats", {}).get("followers"),
-            "following": data.get("profile", {}).get("stats", {}).get("following"),
-            "views": data.get("profile", {}).get("stats", {}).get("views"),
-            "loves": data.get("profile", {}).get("stats", {}).get("loves"),
-            "favorites": data.get("profile", {}).get("stats", {}).get("favorites"),
             "country": data.get("profile", {}).get("country", "Unknown"),
+            "followers": data.get("stats", {}).get("followers", 0),
+            "following": data.get("stats", {}).get("following", 0),
+            "views": data.get("stats", {}).get("views", 0),
+            "loves": data.get("stats", {}).get("loves", 0),
+            "favorites": data.get("stats", {}).get("favorites", 0),
         }
         return stats_data
     except Exception as e:
