@@ -47,15 +47,15 @@
                             <a href="https://scratch.mit.edu/users/${data.username}" target="_blank" class="profile-btn">View Profile ↗️</a>
                         </div>
                     </div>
-                    <p><strong>ID:</strong> ${data.id}</p>
-                    <p><strong>Joined:</strong> ${data.joined}</p>
-                    <p><strong>Country:</strong> ${data.country}</p>
-                    <p><strong>Followers:</strong> ${data.followers}</p>
-                    <p><strong>Following:</strong> ${data.following}</p>
-                    <p><strong>Total Projects:</strong> ${data.project_count}</p>
-                    <p><strong>Total Favorites:</strong> ${data.favorites_count}</p>
-                    <p><strong>Total Loves:</strong> ${data.total_loves}</p>
-                    <p><strong>Total Views:</strong> ${data.total_views}</p>
+                    <p><strong>🆔 ID:</strong> ${data.id}</p>
+                    <p><strong>📅 Joined:</strong> ${data.joined_formatted}</p>
+                    <p><strong>🌍 Country:</strong> ${data.country}</p>
+                    <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
+                    <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
+                    <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
+                    <p><strong>⭐ Total Favorites:</strong> ${data.favorites_count.toLocaleString()}</p>
+                    <p><strong>❤️ Total Loves:</strong> ${data.total_loves.toLocaleString()}</p>
+                    <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
                     ${
                         data.most_loved
                         ? `<div class="most-loved">
