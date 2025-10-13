@@ -38,31 +38,42 @@ def stats():
         total_favs = sum(getattr(p, 'favorites', 0) or 0 for p in all_projects)
         total_views = sum(getattr(p, 'views', 0) or 0 for p in all_projects)
         
-        # Identify Most Loved Project
         most_loved = max(all_projects, key=lambda p: getattr(p, 'loves', 0) or 0) if all_projects else None
-        
-        # 👈 NEW: Identify Most Viewed Project
         most_viewed = max(all_projects, key=lambda p: getattr(p, 'views', 0) or 0) if all_projects else None
 
+        # --- NEW: Average Project Performance Calculation ---
+        project_count = user.project_count()
+        # Use 1 for division if project_count is 0 to prevent ZeroDivisionError
+        safe_project_count = project_count if project_count > 0 else 1 
+
+        avg_loves = total_loves / safe_project_count
+        avg_favorites = total_favs / safe_project_count
+        avg_views = total_views / safe_project_count
+        # ----------------------------------------------------
 
         stats_data = {
             "username": user.username,
             "id": user.id,
             "joined": joined_formatted, 
             "country": user.country,
-            "about_me": user.about_me,
-            "wiwo": user.wiwo,
-            "scratchteam": user.scratchteam,
+            "about_me": user.about_me, # 👈 User Activity/Status
+            "wiwo": user.wiwo,         # 👈 User Activity/Status
+            "scratchteam": user.scratchteam, # 👈 User Activity/Status
             "followers": user.follower_count(),
             "following": user.following_count(),
-            "project_count": user.project_count(),
+            "project_count": project_count,
             "favorited_projects_count": user.favorites_count(), 
             "total_loves": total_loves,
             "total_favorites_received": total_favs, 
             "total_views": total_views,
+            
+            # 👈 NEW: Average Project Performance Metrics
+            "avg_loves": avg_loves,
+            "avg_favorites": avg_favorites,
+            "avg_views": avg_views,
+            
             "profile_pic": f"https://uploads.scratch.mit.edu/get_image/user/{user.id}_60x60.png",
             
-            # Most Loved Data
             "most_loved": {
                 "title": most_loved.title,
                 "loves": getattr(most_loved, 'loves', 0),
@@ -71,7 +82,6 @@ def stats():
                 "id": most_loved.id
             } if most_loved else None,
             
-            # 👈 NEW: Most Viewed Data
             "most_viewed": {
                 "title": most_viewed.title,
                 "loves": getattr(most_viewed, 'loves', 0),
