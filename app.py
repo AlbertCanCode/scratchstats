@@ -6,7 +6,11 @@ app = Flask(__name__)
 
 # Reusable function to fetch and process all stats for a single user
 def get_all_stats(username):
-    user = scratch3.get_user(username)
+    try:
+        user = scratch3.get_user(username)
+    except:
+        # Re-raise to be caught in the API endpoint
+        raise Exception("User not found or API error.")
 
     # --- Date Formatting ---
     joined_datetime = datetime.strptime(user.join_date.split('T')[0], '%Y-%m-%d')
@@ -15,17 +19,16 @@ def get_all_stats(username):
     # Fetch all projects safely with pagination
     all_projects = []
     offset = 0
-    MAX_PROJECTS = 1000  # Reasonable limit
+    MAX_PROJECTS = 1000
     
     while len(all_projects) < MAX_PROJECTS:
-        # Note: scratchattach returns projects sorted by most recent first
         batch = user.projects(limit=100, offset=offset)
         if not batch:
             break
         all_projects.extend(batch)
         offset += 100
 
-    # Calculate Totals (Comments removed)
+    # Calculate Totals
     total_loves = sum(getattr(p, 'loves', 0) or 0 for p in all_projects)
     total_favs = sum(getattr(p, 'favorites', 0) or 0 for p in all_projects)
     total_views = sum(getattr(p, 'views', 0) or 0 for p in all_projects)
@@ -33,11 +36,9 @@ def get_all_stats(username):
     # Identify Top Projects
     most_loved = max(all_projects, key=lambda p: getattr(p, 'loves', 0) or 0) if all_projects else None
     most_viewed = max(all_projects, key=lambda p: getattr(p, 'views', 0) or 0) if all_projects else None
-    
-    # NEW: Most Recent Project (simply the first one in the list)
     most_recent = all_projects[0] if all_projects else None
 
-    # Calculate Averages (Comments removed)
+    # Calculate Averages
     project_count = user.project_count()
     safe_project_count = project_count if project_count > 0 else 1 
 
@@ -84,7 +85,6 @@ def get_all_stats(username):
             "id": most_viewed.id
         } if most_viewed else None,
 
-        # NEW: Most Recent Project Data
         "most_recent": {
             "title": most_recent.title,
             "loves": getattr(most_recent, 'loves', 0),
@@ -123,15 +123,15 @@ def stats_api():
     # Fetch User 1
     try:
         results["user1"] = get_all_stats(username1)
-    except Exception:
-        errors["user1"] = f"User '{username1}' not found or API error."
+    except Exception as e:
+        errors["user1"] = f"User '{username1}' not found or API error: {e}"
 
     # Fetch User 2 (if provided)
     if username2:
         try:
             results["user2"] = get_all_stats(username2)
-        except Exception:
-            errors["user2"] = f"User '{username2}' not found or API error."
+        except Exception as e:
+            errors["user2"] = f"User '{username2}' not found or API error: {e}"
     
     # Final Error Handling
     if not results and (errors.get("user1") or errors.get("user2")):
