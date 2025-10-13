@@ -19,11 +19,20 @@ def stats():
     try:
         user = scratch3.get_user(username)
 
-        projects = user.projects(limit=100, offset=0)
-        total_loves = sum(p.loves for p in projects) if projects else 0
-        total_favs = sum(p.favorites for p in projects) if projects else 0
-        total_views = sum(p.views for p in projects) if projects else 0
-        most_loved = max(projects, key=lambda p: p.loves) if projects else None
+        # Fetch all projects safely with pagination
+        all_projects = []
+        offset = 0
+        while True:
+            batch = user.projects(limit=100, offset=offset)
+            if not batch:
+                break
+            all_projects.extend(batch)
+            offset += 100
+
+        total_loves = sum(p.loves or 0 for p in all_projects)
+        total_favs = sum(p.favorites or 0 for p in all_projects)
+        total_views = sum(p.views or 0 for p in all_projects)
+        most_loved = max(all_projects, key=lambda p: p.loves or 0) if all_projects else None
 
         stats_data = {
             "username": user.username,
