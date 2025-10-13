@@ -33,54 +33,70 @@
     </div>
 
     <footer>
-        Made by Scratch user chessproking-tm
+        Made by Scratch user <a href="https://scratch.mit.edu/users/ChessProKing-TM" target="_blank">ChessProKing-TM</a>
     </footer>
 
     <script>
         const form = document.getElementById("statsForm");
         const statsDiv = document.getElementById("stats");
         const submitBtn = document.getElementById("submitBtn");
+        const username1Input = document.getElementById("username1");
         const viewMode = form.dataset.mode;
         const header = document.getElementById("main-header");
         const subheader = document.getElementById("main-subheader");
         
-        // --- Setup View Mode and Navigation ---
+        const DEFAULT_USERNAME = "ChessProKing-TM";
+
+        // --- Setup View Mode, Navigation, and Button Text ---
         const username2Input = document.getElementById('username2');
 
+        function updateSubmitButtonText() {
+            if (viewMode === 'single') {
+                const currentUsername = username1Input.value.trim() || DEFAULT_USERNAME;
+                submitBtn.textContent = 'Get Stats for ' + currentUsername;
+            } else {
+                submitBtn.textContent = 'Get Stats';
+            }
+        }
+        
         if (viewMode === 'compare') {
             header.textContent = 'Compare Two Scratch Users';
             subheader.textContent = 'Enter the usernames you want to compare.';
             username2Input.style.display = 'block';
-            username2Input.required = true; // Make it required
+            username2Input.required = true;
             document.getElementById('compare-link').classList.add('active');
         } else {
             username2Input.style.display = 'none';
             username2Input.required = false;
             document.getElementById('single-link').classList.add('active');
+            
+            // Set initial button text for single mode
+            updateSubmitButtonText();
+            // Listen for input changes to update button text
+            username1Input.addEventListener('input', updateSubmitButtonText);
         }
         
         // --- Form Submission Handler (Handles both views) ---
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const username1 = document.getElementById("username1").value.trim();
-            const username2 = document.getElementById("username2").value.trim();
+            const username1 = username1Input.value.trim();
+            const username2 = username2Input.value.trim();
             
             statsDiv.innerHTML = '<div class="loading-spinner"></div> Fetching data...';
             submitBtn.disabled = true;
             submitBtn.textContent = 'Fetching...';
 
             if (!username1) {
-                statsDiv.textContent = "❌ Please enter at least one username.";
+                statsDiv.textContent = "❌ Please enter a username.";
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Get Stats';
+                updateSubmitButtonText();
                 return;
             }
 
-            // NEW: Enforce username2 requirement on compare view
             if (viewMode === 'compare' && !username2) {
                 statsDiv.textContent = "❌ Please enter both usernames for comparison.";
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Get Stats';
+                updateSubmitButtonText();
                 return;
             }
 
@@ -122,7 +138,7 @@
                 statsDiv.textContent = "❌ Network error. Please check your connection or try again.";
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Get Stats';
+                updateSubmitButtonText();
             }
         });
         
