@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import scratchattach as scratch3
-from datetime import datetime # 👈 IMPORT DATETIME
+from datetime import datetime 
 
 app = Flask(__name__)
 
@@ -17,10 +17,7 @@ def stats():
     try:
         user = scratch3.get_user(username)
 
-        # --- Date Formatting Fix ---
-        # scratchattach returns the date like 'YYYY-MM-DDThh:mm:ss.msZ'. 
-        # We need to parse and reformat it.
-        # Use split('T')[0] to get only the date part 'YYYY-MM-DD'
+        # --- Date Formatting ---
         joined_datetime = datetime.strptime(user.join_date.split('T')[0], '%Y-%m-%d')
         joined_formatted = joined_datetime.strftime("%B %d, %Y")
         # ---------------------------
@@ -38,19 +35,19 @@ def stats():
             offset += 100
 
         total_loves = sum(getattr(p, 'loves', 0) or 0 for p in all_projects)
-        # --- Total Favorites Fix ---
-        # This now correctly aggregates the favorites from all *user's projects*, 
-        # not the count of projects the *user has favorited* (which is favorites_count()).
         total_favs = sum(getattr(p, 'favorites', 0) or 0 for p in all_projects)
-        # The user's count of projects they favorited is still available as user.favorites_count()
-        # ---------------------------
         total_views = sum(getattr(p, 'views', 0) or 0 for p in all_projects)
+        
+        # Identify Most Loved Project
         most_loved = max(all_projects, key=lambda p: getattr(p, 'loves', 0) or 0) if all_projects else None
+        
+        # 👈 NEW: Identify Most Viewed Project
+        most_viewed = max(all_projects, key=lambda p: getattr(p, 'views', 0) or 0) if all_projects else None
+
 
         stats_data = {
             "username": user.username,
             "id": user.id,
-            # Use the newly formatted date for the frontend
             "joined": joined_formatted, 
             "country": user.country,
             "about_me": user.about_me,
@@ -59,26 +56,34 @@ def stats():
             "followers": user.follower_count(),
             "following": user.following_count(),
             "project_count": user.project_count(),
-            # Renamed to reflect what it tracks: the count of projects the user has favorited
             "favorited_projects_count": user.favorites_count(), 
             "total_loves": total_loves,
-            # This is the new, correct aggregate favorite count for all their projects
             "total_favorites_received": total_favs, 
             "total_views": total_views,
             "profile_pic": f"https://uploads.scratch.mit.edu/get_image/user/{user.id}_60x60.png",
+            
+            # Most Loved Data
             "most_loved": {
                 "title": most_loved.title,
                 "loves": getattr(most_loved, 'loves', 0),
                 "views": getattr(most_loved, 'views', 0),
                 "favorites": getattr(most_loved, 'favorites', 0),
                 "id": most_loved.id
-            } if most_loved else None
+            } if most_loved else None,
+            
+            # 👈 NEW: Most Viewed Data
+            "most_viewed": {
+                "title": most_viewed.title,
+                "loves": getattr(most_viewed, 'loves', 0),
+                "views": getattr(most_viewed, 'views', 0),
+                "favorites": getattr(most_viewed, 'favorites', 0),
+                "id": most_viewed.id
+            } if most_viewed else None
         }
 
         return jsonify(stats_data)
 
     except Exception as e:
-        # User not found or other API error
         return {"error": str(e)}, 500
 
 if __name__ == "__main__":
