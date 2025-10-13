@@ -43,7 +43,8 @@
                     <div class="profile">
                         <img src="${data.profile_pic}" alt="Profile Picture">
                         <div>
-                            <h2>${data.username}</h2>
+                            <h2>${data.username} 
+                                ${data.scratchteam ? '<span class="scratch-team-badge">⭐️ Scratch Team</span>' : ''} </h2>
                             <a href="https://scratch.mit.edu/users/${data.username}" target="_blank" class="profile-btn">View Profile ↗️</a>
                         </div>
                     </div>
@@ -54,14 +55,25 @@
                         <p><strong>🌍 Country:</strong> ${data.country}</p>
                     </div>
 
+                    <div class="activity-section">
+                        <h4>💬 About Me</h4>
+                        <p class="activity-content">${data.about_me || 'Nothing here yet!'}</p>
+                        <h4>💻 What I'm Working On</h4>
+                        <p class="activity-content">${data.wiwo || 'Nothing here yet!'}</p>
+                    </div>
+
                     <div class="stats-grid">
                         <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
                         <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
                         <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
                         <p><strong>⭐ Projects Faved:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
-                        <p><strong>✨ TOTAL FAVORITES RECEIVED:</strong> ${data.total_favorites_received.toLocaleString()}</p>
-                        <p><strong>❤️ TOTAL LOVES RECEIVED:</strong> ${data.total_loves.toLocaleString()}</p>
+                        <p><strong>✨ TOTAL FAVES REC:</strong> ${data.total_favorites_received.toLocaleString()}</p>
+                        <p><strong>❤️ TOTAL LOVES REC:</strong> ${data.total_loves.toLocaleString()}</p>
                         <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
+                        
+                        <p><strong>❤️ Avg. Loves/Project:</strong> ${data.avg_loves.toFixed(2)}</p>
+                        <p><strong>✨ Avg. Faves/Project:</strong> ${data.avg_favorites.toFixed(2)}</p>
+                        <p><strong>👁️ Avg. Views/Project:</strong> ${data.avg_views.toFixed(2)}</p>
                     </div>
 
                     ${
@@ -74,7 +86,8 @@
                         data.most_loved
                         ? `<div class="project-box most-loved">
                             <h3>🏆 Most Loved Project</h3>
-                            <p class="project-title">${data.most_loved.title}</p>
+                            <img src="https://cdn2.scratch.mit.edu/get_image/project/${data.most_loved.id}_144x108.png" 
+                                 alt="${data.most_loved.title} thumbnail" class="project-thumbnail"> <p class="project-title">${data.most_loved.title}</p>
                             <div class="project-stats">
                                 <span>❤️ ${data.most_loved.loves.toLocaleString()} Loves</span>
                                 <span>👁️ ${data.most_loved.views.toLocaleString()} Views</span>
@@ -89,7 +102,8 @@
                         data.most_viewed
                         ? `<div class="project-box most-viewed">
                             <h3>👁️ Most Viewed Project</h3>
-                            <p class="project-title">${data.most_viewed.title}</p>
+                            <img src="https://cdn2.scratch.mit.edu/get_image/project/${data.most_viewed.id}_144x108.png" 
+                                 alt="${data.most_viewed.title} thumbnail" class="project-thumbnail"> <p class="project-title">${data.most_viewed.title}</p>
                             <div class="project-stats">
                                 <span>👁️ ${data.most_viewed.views.toLocaleString()} Views</span>
                                 <span>❤️ ${data.most_viewed.loves.toLocaleString()} Loves</span>
