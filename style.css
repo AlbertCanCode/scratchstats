@@ -1,148 +1,137 @@
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Body styling */
+/* Reset basic margins and set a friendly font */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to right, #e0f7fa, #e8f5e9);
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #FFBF00, #0099FF);
+  color: #222;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 /* Header */
 h1 {
-    color: #00796b;
-    margin-bottom: 10px;
+  margin-top: 50px;
+  color: white;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+  font-size: 2.5em;
 }
 
+/* Subtext */
 p {
-    margin: 8px 0;
+  color: #222;
+  font-size: 1.1em;
+  margin: 10px 0 20px;
 }
 
-/* Form styling */
+/* Form */
 form {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
-input {
-    padding: 12px 15px;
-    width: 250px;
-    border: 2px solid #00796b;
-    border-radius: 10px;
-    outline: none;
-    font-size: 16px;
-    margin-right: 10px;
-    transition: border-color 0.3s;
+input[type="text"] {
+  padding: 12px 15px;
+  border: 2px solid #00A6FF;
+  border-radius: 8px;
+  font-size: 1em;
+  width: 220px;
+  outline: none;
+  transition: 0.2s;
 }
 
-input:focus {
-    border-color: #004d40;
+input[type="text"]:focus {
+  border-color: #FFAA00;
+  box-shadow: 0 0 6px #FFAA00;
 }
 
 button {
-    padding: 12px 25px;
-    background-color: #00796b;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
+  background: #00A6FF;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  font-size: 1em;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
 button:hover {
-    background-color: #004d40;
-    transform: scale(1.05);
+  background: #007ACC;
+  transform: translateY(-2px);
 }
 
-/* Stats container */
+/* Stats display */
 #stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    max-width: 1000px;
-    width: 100%;
+  background: white;
+  margin-top: 30px;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 500px;
+  width: 90%;
+  text-align: left;
 }
 
-/* Individual stat card */
-.stat-card {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.3s;
+#stats p {
+  margin: 8px 0;
 }
 
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+#stats a {
+  color: #007ACC;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-/* Profile card */
+#stats a:hover {
+  text-decoration: underline;
+}
+
+/* Profile section */
 .profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .profile img {
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-    border: 3px solid #00796b;
-    margin-bottom: 10px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #00A6FF;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
 .profile h2 {
-    color: #00796b;
+  margin: 0;
+  color: #333;
 }
 
-/* Stats text */
-.stat-card p {
-    font-size: 16px;
-    margin: 5px 0;
-}
-
-/* Most loved project */
-.most-loved {
-    background: #ffe0b2;
-    color: #bf360c;
-    border-radius: 10px;
-    padding: 15px;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.most-loved a {
-    color: #bf360c;
-    text-decoration: none;
-    margin-left: 5px;
-}
-
-.most-loved:hover {
-    background: #ffcc80;
-}
-
-/* Responsive */
+/* Responsive adjustments */
 @media (max-width: 600px) {
-    input {
-        margin-bottom: 10px;
-        width: 100%;
-    }
+  form {
+    flex-direction: column;
+  }
 
-    button {
-        width: 100%;
-    }
+  input[type="text"] {
+    width: 100%;
+  }
+
+  #stats {
+    text-align: center;
+  }
+
+  .profile {
+    flex-direction: column;
+  }
 }
