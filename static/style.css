@@ -66,6 +66,7 @@ button:hover {
   display: inline-block;
   text-align: left;
   max-width: 600px;
+  width: 90%; /* Added width for better responsiveness */
 }
 
 #stats:empty {
@@ -76,6 +77,8 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding-bottom: 1rem; /* Added padding */
+  border-bottom: 1px solid #333; /* Separator */
   margin-bottom: 1rem;
 }
 
@@ -92,9 +95,88 @@ button:hover {
   color: #00ff9f;
 }
 
+/* --- New Grid Layout for Stats --- */
+.user-info {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for a balanced look */
+    gap: 0.5rem 1rem;
+    margin-bottom: 1.5rem; /* Space before project highlights */
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #333;
+}
+
 #stats p {
-  margin: 0.5rem 0;
+  margin: 0; /* Remove default paragraph margin */
   line-height: 1.6;
+}
+
+/* --- Project Highlights Container --- */
+.project-highlights-container {
+    display: flex;
+    flex-direction: column; /* Stacked on small screens */
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 500px) {
+    .project-highlights-container {
+        flex-direction: row; /* Side-by-side on larger screens */
+        flex-wrap: wrap;
+    }
+}
+
+
+.project-box {
+  background: #242424;
+  padding: 1rem;
+  border-radius: 10px;
+  flex: 1; /* Allows boxes to share space in the container */
+  min-width: 250px;
+  box-shadow: 0 0 10px rgba(0, 255, 159, 0.1);
+  text-align: center;
+}
+
+.project-box h3 {
+    margin-top: 0;
+    color: #00ff9f;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+}
+
+.project-title {
+    font-weight: bold;
+    margin-bottom: 0.8rem !important; /* Override p margin */
+}
+
+.project-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #333;
+}
+
+.project-btn {
+    display: inline-block;
+    background: #00ff9f;
+    color: #1a1a1a;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.project-btn:hover {
+    background: #00ffaa;
+    text-decoration: none;
 }
 
 a {
