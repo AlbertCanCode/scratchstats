@@ -48,13 +48,12 @@
                         </div>
                     </div>
                     <p><strong>🆔 ID:</strong> ${data.id}</p>
-                    <p><strong>📅 Joined:</strong> ${data.joined_formatted}</p>
-                    <p><strong>🌍 Country:</strong> ${data.country}</p>
+                    <p><strong>📅 Joined:</strong> ${data.joined}</p> <p><strong>🌍 Country:</strong> ${data.country}</p>
                     <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
                     <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
                     <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
-                    <p><strong>⭐ Total Favorites:</strong> ${data.favorites_count.toLocaleString()}</p>
-                    <p><strong>❤️ Total Loves:</strong> ${data.total_loves.toLocaleString()}</p>
+                    <p><strong>⭐ Projects Favorited By User:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
+                    <p><strong>✨ TOTAL FAVORITES RECEIVED:</strong> ${data.total_favorites_received.toLocaleString()}</p> <p><strong>❤️ Total Loves:</strong> ${data.total_loves.toLocaleString()}</p>
                     <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
                     ${
                         data.most_loved
@@ -62,9 +61,9 @@
                             <h3>🏆 Most Loved Project</h3>
                             <p class="project-title">${data.most_loved.title}</p>
                             <div class="project-stats">
-                                <span>❤️ ${data.most_loved.loves} Loves</span>
-                                <span>👁️ ${data.most_loved.views} Views</span>
-                                <span>⭐ ${data.most_loved.favorites} Favorites</span>
+                                <span>❤️ ${data.most_loved.loves.toLocaleString()} Loves</span>
+                                <span>👁️ ${data.most_loved.views.toLocaleString()} Views</span>
+                                <span>⭐ ${data.most_loved.favorites.toLocaleString()} Favorites</span>
                             </div>
                             <a href="https://scratch.mit.edu/projects/${data.most_loved.id}" target="_blank" class="project-btn">View Project ↗️</a>
                         </div>`
