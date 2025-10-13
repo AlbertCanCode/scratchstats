@@ -9,10 +9,12 @@
 <body>
     
     <nav>
-        <div class="nav-title">Scratch Stats Dashboard</div>
-        <div class="nav-links">
-            <a href="/" id="single-link" class="nav-link">Single Search</a>
-            <a href="/compare" id="compare-link" class="nav-link">Compare Stats</a>
+        <div class="nav-container">
+            <div class="nav-title">Scratch Stats Dashboard</div>
+            <div class="nav-links">
+                <a href="/" id="single-link" class="nav-link">Single Search</a>
+                <a href="/compare" id="compare-link" class="nav-link">Compare Stats</a>
+            </div>
         </div>
     </nav>
     
@@ -22,7 +24,7 @@
 
         <form id="statsForm" data-mode="{{ view_mode }}">
             <div class="input-group">
-                <input type="text" id="username1" name="username1" placeholder="Username 1 (e.g. jw_s)" required>
+                <input type="text" id="username1" name="username1" placeholder="e.g. ChessProking-tm" required>
                 <input type="text" id="username2" name="username2" placeholder="Username 2 (optional)">
             </div>
             <button type="submit" id="submitBtn">Get Stats</button>
@@ -73,9 +75,6 @@
             params.append('username1', username1);
             if (viewMode === 'compare' && username2) {
                 params.append('username2', username2);
-            } else if (viewMode === 'single') {
-                 // For single search, we want to ensure only username1 is sent, even if the field for 2 is hidden.
-                 // The backend handles the absence of username2.
             }
 
             try {
@@ -87,7 +86,6 @@
                 
                 const response = await res.json();
                 
-                // UX Improvement: Handle non-200 errors from backend
                 if (!res.ok) {
                     statsDiv.textContent = `❌ Error: ${response.error || 'Could not connect to server/API.'}`;
                     return;
@@ -96,12 +94,10 @@
                 const data = response.data;
                 const errors = response.errors || {};
 
-                // Render logic based on mode and successful fetches
                 if (viewMode === 'compare' && (data.user1 && data.user2)) {
                     statsDiv.innerHTML = renderComparison(data.user1, data.user2, errors);
                 } else if (data.user1 && viewMode === 'compare') {
-                    // Fallback to single view if user 2 was empty or failed
-                    statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "Only one user found or the second user failed to load.");
+                    statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "⚠️ Only one user found or the second user failed to load.");
                 } else if (data.user1) {
                     statsDiv.innerHTML = renderSingle(data.user1, errors.user1);
                 } else {
@@ -112,13 +108,12 @@
                 console.error(err);
                 statsDiv.textContent = "❌ Network error. Please check your connection or try again.";
             } finally {
-                // UX Improvement: Resetting button state
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Get Stats';
             }
         });
         
-        // --- Reusable Rendering Functions (Modified for new metrics and views) ---
+        // --- Reusable Rendering Functions (Modified for Recent Project and removed comments) ---
         
         function renderSingle(data, errorMsg, notice = '') {
             if (errorMsg) {
@@ -127,7 +122,7 @@
 
             return `
                 <div class="stats-container single-user">
-                    ${notice ? `<div class="notice-message">⚠️ ${notice}</div>` : ''}
+                    ${notice ? `<div class="notice-message">${notice}</div>` : ''}
                     ${renderProfileHeader(data)}
                     <div class="user-info">
                         <p><strong>🆔 ID:</strong> ${data.id}</p>
@@ -203,7 +198,7 @@
             `;
         }
         
-        // Updated to include total comments
+        // Removed total comments
         function renderCoreStats(data) {
             return `
                 <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
@@ -213,60 +208,65 @@
                 <p><strong>✨ TOTAL FAVES REC:</strong> ${data.total_favorites_received.toLocaleString()}</p>
                 <p><strong>❤️ TOTAL LOVES REC:</strong> ${data.total_loves.toLocaleString()}</p>
                 <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
-                <p><strong>💬 Total Comments:</strong> ${data.total_comments.toLocaleString()}</p>
             `;
         }
 
-        // Updated to include average comments and engagement score
+        // Removed average comments and engagement score
         function renderAverageStats(data) {
             return `
                 <p><strong>❤️ Avg. Loves/Project:</strong> ${data.avg_loves.toFixed(2)}</p>
                 <p><strong>✨ Avg. Faves/Project:</strong> ${data.avg_favorites.toFixed(2)}</p>
                 <p><strong>👁️ Avg. Views/Project:</strong> ${data.avg_views.toFixed(2)}</p>
-                <p><strong>💬 Avg. Comments/Project:</strong> ${data.avg_comments.toFixed(2)}</p>
-                <p class="ratio-stat"><strong>📈 Engagement Score (C/V):</strong> ${data.comments_per_view.toFixed(4)}</p>
             `;
         }
 
-        // Single View Project Highlights (All three top projects shown)
+        // Project Highlights (Now uses most_recent)
         function renderProjectHighlights(data) {
-            const hasProjects = data.most_loved || data.most_viewed || data.most_commented;
+            const hasProjects = data.most_loved || data.most_viewed || data.most_recent;
             if (!hasProjects) return "<p>No projects found.</p>";
 
             return `
                 <div class="project-highlights-container">
-                    ${renderProjectBox(data.most_loved, "🏆 Most Loved Project", "❤️ Loves", "loves", "views", "favorites", "comments")}
-                    ${renderProjectBox(data.most_viewed, "👁️ Most Viewed Project", "👁️ Views", "views", "loves", "favorites", "comments")}
-                    ${renderProjectBox(data.most_commented, "💬 Most Commented Project", "💬 Comments", "comments", "loves", "views", "favorites")}
+                    ${renderProjectBox(data.most_recent, "🕒 Most Recent Project", "🕒 Last Updated", "id", "loves", "views", "favorites")}
+                    ${renderProjectBox(data.most_loved, "🏆 Most Loved Project", "❤️ Loves", "loves", "views", "favorites")}
+                    ${renderProjectBox(data.most_viewed, "👁️ Most Viewed Project", "👁️ Views", "views", "loves", "favorites")}
                 </div>
             `;
         }
         
-        // Comparison View Project Summary (Simpler display to save space)
+        // Comparison View Project Summary (Now uses most_recent)
         function renderTopProjectComparison(data) {
             const m_loved = data.most_loved;
             const m_viewed = data.most_viewed;
-            const m_commented = data.most_commented;
+            const m_recent = data.most_recent;
 
-            if (!m_loved && !m_viewed && !m_commented) return '';
+            if (!m_loved && !m_viewed && !m_recent) return '';
 
             return `
                 <div class="comparison-project-summary">
                     <h4>Top Projects</h4>
+                    ${m_recent ? `<p><strong>🕒 Recent:</strong> <a href="https://scratch.mit.edu/projects/${m_recent.id}">${m_recent.title}</a></p>` : ''}
                     ${m_loved ? `<p><strong>🏆 Loved:</strong> <a href="https://scratch.mit.edu/projects/${m_loved.id}">${m_loved.title}</a> (${m_loved.loves.toLocaleString()})</p>` : ''}
                     ${m_viewed ? `<p><strong>👁️ Viewed:</strong> <a href="https://scratch.mit.edu/projects/${m_viewed.id}">${m_viewed.title}</a> (${m_viewed.views.toLocaleString()})</p>` : ''}
-                    ${m_commented ? `<p><strong>💬 Commented:</strong> <a href="https://scratch.mit.edu/projects/${m_commented.id}">${m_commented.title}</a> (${m_commented.comments.toLocaleString()})</p>` : ''}
                 </div>
             `;
         }
 
+        // Helper function for project boxes
         function renderProjectBox(project, title, metricLabel, metricKey, ...otherKeys) {
             if (!project) return '';
             
-            let statsHtml = `<span>${metricLabel} ${project[metricKey].toLocaleString()}</span>`;
+            let statsHtml = '';
             
+            // Special handling for Most Recent, which doesn't have a single "score" stat
+            if (metricKey === 'id') {
+                 statsHtml = `<span>${metricLabel} (ID ${project.id})</span>`;
+            } else {
+                 statsHtml = `<span>${metricLabel} ${project[metricKey].toLocaleString()}</span>`;
+            }
+
             otherKeys.forEach(key => {
-                const label = key === 'loves' ? '❤️' : key === 'views' ? '👁️' : key === 'favorites' ? '⭐' : key === 'comments' ? '💬' : '';
+                const label = key === 'loves' ? '❤️' : key === 'views' ? '👁️' : key === 'favorites' ? '⭐' : '';
                 const value = project[key] || 0;
                 if (label) statsHtml += `<span>${label} ${value.toLocaleString()}</span>`;
             });
@@ -284,7 +284,6 @@
                 </div>
             `;
         }
-
     </script>
 </body>
 </html>
