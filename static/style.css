@@ -180,7 +180,7 @@ button:disabled {
     background: #242424;
 }
 
-/* --- Comparison Styles for Highlighting the Winner --- */
+/* --- NEW Comparison Styles for Highlighting the Winner --- */
 .winner-stat {
     /* Bright green glow and bold text for the winning user's stat */
     color: #fff;
