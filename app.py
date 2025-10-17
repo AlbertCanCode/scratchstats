@@ -116,7 +116,7 @@ def get_all_stats(username):
     }
     return stats_data
 
-# --- New Routing Structure ---
+# --- New Routing Structure (rest of app.py is unchanged) ---
 
 # Homepage: Single User Search
 @app.route("/")
