@@ -3,18 +3,17 @@
 /* --- GLOBAL STYLES --- */
 body {
   font-family: "Poppins", sans-serif;
-  /* Cleaner, deeper gradient */
-  background: linear-gradient(135deg, #0f0f0f, #1e1e1e); 
-  color: #f0f0f0; /* Lighter text for dark mode */
+  background: linear-gradient(135deg, #0a0a0a, #1a1a1a); /* Deeper, cleaner dark background */
+  color: #f0f0f0; 
   text-align: center;
   margin: 0;
   min-height: 100vh;
-  padding-top: 70px; /* Increased padding to clear fixed nav */
+  padding-top: 70px; 
   transition: background 0.5s;
 }
 
 a {
-  color: #00e676; /* Brighter green */
+  color: #00ff9f; /* Bright accent color */
   text-decoration: none;
   transition: color 0.3s;
 }
@@ -25,9 +24,9 @@ a:hover {
 }
 
 h1 {
-  font-size: 2.8rem; /* Slightly larger */
-  color: #00e676;
-  text-shadow: 0 0 10px rgba(0, 230, 118, 0.4); /* Cleaner shadow */
+  font-size: 2.8rem; 
+  color: #00ff9f;
+  text-shadow: 0 0 15px rgba(0, 255, 159, 0.8), 0 0 5px rgba(0, 255, 159, 0.6); /* Stronger glow */
   margin-bottom: 0.5rem;
   font-weight: 700;
 }
@@ -45,7 +44,7 @@ nav {
     top: 0;
     left: 0;
     width: 100%;
-    background: rgba(15, 15, 15, 0.95); /* Semi-transparent, very dark */
+    background: rgba(10, 10, 10, 0.95); 
     box-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
     z-index: 1000;
     backdrop-filter: blur(5px);
@@ -71,16 +70,16 @@ nav {
 }
 
 .nav-link:hover {
-    color: #00e676;
-    background: #242424;
+    color: #00ff9f;
+    background: #1e1e1e;
     text-decoration: none;
 }
 
 .nav-link.active {
-    background: #00e676;
-    color: #0f0f0f;
+    background: #00ff9f;
+    color: #1a1a1a;
     font-weight: 700;
-    box-shadow: 0 2px 10px rgba(0, 230, 118, 0.4);
+    box-shadow: 0 2px 10px rgba(0, 255, 159, 0.4);
 }
 
 
@@ -89,7 +88,7 @@ form {
   margin-top: 1.5rem;
   display: flex;
   justify-content: center;
-  gap: 0.8rem; /* Increased gap */
+  gap: 0.8rem; 
   flex-wrap: wrap;
 }
 
@@ -101,10 +100,10 @@ form {
 }
 
 input {
-  padding: 0.8rem; /* Slightly larger padding */
+  padding: 0.8rem; 
   border: 1px solid #333;
   border-radius: 8px;
-  width: 220px; /* Slightly wider */
+  width: 220px; 
   background: #1a1a1a;
   color: #f0f0f0;
   font-size: 1rem;
@@ -112,47 +111,56 @@ input {
 }
 
 input:focus {
-    border-color: #00e676;
-    box-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
+    border-color: #00ff9f;
+    box-shadow: 0 0 8px rgba(0, 255, 159, 0.7);
     outline: none;
 }
 
-input::placeholder {
-  color: #777;
-}
-
 button {
-  background: #00e676;
+  background: #00ff9f;
   border: none;
   padding: 0.8rem 1.5rem;
   border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
-  color: #0f0f0f;
-  transition: 0.3s;
+  color: #1a1a1a;
+  transition: 0.3s ease-in-out;
   font-size: 1rem;
-  box-shadow: 0 4px 10px rgba(0, 230, 118, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 255, 159, 0.5);
 }
 
 button:hover:not(:disabled) {
   background: #4dffb4;
-  transform: translateY(-2px); /* Lift effect */
-  box-shadow: 0 6px 12px rgba(0, 230, 118, 0.4);
+  transform: translateY(-3px) scale(1.02); /* Lift and scale animation */
+  box-shadow: 0 8px 20px rgba(0, 255, 159, 0.6);
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
 }
 
 
 /* --- STATS CONTAINER --- */
 #stats {
-  margin-top: 2rem;
-  background: #151515; /* Darker background for stats */
-  padding: 2rem; /* More padding */
-  border-radius: 16px; /* Rounder corners */
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+  margin-top: 2.5rem; /* More spacing */
+  background: #101010; /* Very dark background for stats */
+  padding: 2rem; 
+  border-radius: 16px; 
+  box-shadow: 0 0 20px rgba(0, 255, 159, 0.4), 0 8px 40px rgba(0, 0, 0, 0.8); /* Stronger glow effect */
   display: inline-block;
   text-align: left;
   max-width: 1200px;
   width: 100%; 
-  border: 1px solid #2e2e2e; /* Subtle border */
+  border: 1px solid #2e2e2e; 
+  opacity: 0; /* Initial state for animation */
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
 }
 
 /* --- COMPARISON STYLES --- */
@@ -174,51 +182,57 @@ button:hover:not(:disabled) {
     min-width: 300px;
     padding: 1.5rem;
     border-radius: 12px;
-    background: #1e1e1e; /* Lighter shade for user column */
-    transition: box-shadow 0.3s;
+    background: #1e1e1e; 
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border: 1px solid #333;
 }
 
 .user-col:hover {
-    box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 159, 0.2);
+    transform: translateY(-5px); /* Subtle lift on hover */
 }
 
 .col-header {
     text-align: center;
-    color: #00e676;
-    border-bottom: 2px solid #00e676;
+    color: #00ff9f;
+    border-bottom: 2px solid #00ff9f;
     padding-bottom: 0.5rem;
     margin-top: 0;
     margin-bottom: 1rem;
     font-size: 1.5rem;
 }
 
-/* --- HIGHLIGHTING STYLES (NEW) --- */
+/* --- HIGHLIGHTING STYLES --- */
 .highlight-winner {
-    background-color: #0f301d; /* Dark green background */
-    color: #4dffb4; /* Bright winner text */
+    background-color: #0f301d; 
+    color: #4dffb4; 
     padding: 2px 4px;
     border-radius: 4px;
     font-weight: 700;
     transition: background-color 0.3s;
+    text-shadow: 0 0 5px rgba(77, 255, 180, 0.8);
+    display: inline-block; /* Essential for highlighting text nodes */
 }
 
 .highlight-loser {
-    background-color: #301414; /* Dark red background */
-    color: #ff6666; /* Warning/loser text */
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-weight: 700;
-    opacity: 0.8; /* Slightly subdued */
-    transition: background-color 0.3s;
-}
-
-.highlight-tie {
-    background-color: #302a0f; /* Dark yellow/gold background */
-    color: #ffee00; /* Tie color */
+    background-color: #301414; 
+    color: #ff6666; 
     padding: 2px 4px;
     border-radius: 4px;
     font-weight: 700;
     opacity: 0.8; 
+    transition: background-color 0.3s;
+    display: inline-block;
+}
+
+.highlight-tie {
+    background-color: #302a0f; 
+    color: #ffee00; 
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 700;
+    opacity: 0.9; 
+    display: inline-block;
 }
 
 /* Highlight key for comparison page */
@@ -245,18 +259,23 @@ button:hover:not(:disabled) {
 .profile {
   display: flex;
   align-items: center;
-  gap: 1.5rem; /* More space */
+  gap: 1.5rem; 
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #333;
   margin-bottom: 1.5rem;
 }
 
 .profile img {
-  width: 100px; /* Slightly larger image */
+  width: 100px; 
   height: 100px;
   border-radius: 50%;
-  border: 4px solid #00e676;
-  box-shadow: 0 0 12px rgba(0, 230, 118, 0.6);
+  border: 4px solid #00ff9f;
+  box-shadow: 0 0 15px rgba(0, 255, 159, 0.8); /* Strong profile glow */
+  transition: transform 0.4s ease;
+}
+
+.profile img:hover {
+    transform: rotate(5deg) scale(1.05);
 }
 
 .profile h2 {
@@ -265,18 +284,18 @@ button:hover:not(:disabled) {
 
 .profile-btn {
     display: inline-block;
-    background: #333;
-    color: #00e676;
+    background: #2e2e2e;
+    color: #00ff9f;
     padding: 0.4rem 0.8rem;
     border-radius: 6px;
     font-size: 0.9rem;
     font-weight: 700;
     margin-top: 0.5rem;
-    border: 1px solid #00e676;
+    border: 1px solid #00ff9f;
 }
 
 .profile-btn:hover {
-    background: #00e676;
+    background: #00ff9f;
     color: #1e1e1e;
     text-decoration: none;
 }
@@ -289,8 +308,13 @@ button:hover:not(:disabled) {
 }
 
 .user-info p {
-    margin: 0.4rem 0; /* Spacing for new stats */
+    margin: 0.4rem 0; 
     line-height: 1.4;
+    transition: color 0.3s;
+}
+
+.user-info p:hover {
+    color: #00ff9f;
 }
 
 /* --- ACTIVITY SECTION --- */
@@ -314,7 +338,7 @@ button:hover:not(:disabled) {
     font-style: italic;
     color: #ccc;
     white-space: pre-wrap;
-    max-height: 120px; /* Slightly smaller box for cleanliness */
+    max-height: 120px; 
     overflow-y: auto;
     font-size: 0.95rem;
     margin-bottom: 0.5rem;
@@ -325,16 +349,11 @@ button:hover:not(:disabled) {
 /* --- STATS GRID --- */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* More flexible grid */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
     gap: 1rem 1.5rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #333;
-}
-
-.stats-grid p {
-    margin: 0;
-    line-height: 1.8;
 }
 
 /* --- PROJECT HIGHLIGHTS --- */
@@ -342,7 +361,7 @@ button:hover:not(:disabled) {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: space-between; /* Spread them out */
+    justify-content: space-between; 
     gap: 1.5rem;
     margin-top: 1.5rem;
 }
@@ -351,10 +370,16 @@ button:hover:not(:disabled) {
   background: #1e1e1e;
   padding: 1.2rem;
   border-radius: 10px;
-  flex: 1 1 30%; /* Better flexibility for 3 boxes */
+  flex: 1 1 30%; 
   min-width: 250px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 255, 159, 0.3);
 }
 
 .project-box h3 {
@@ -365,7 +390,12 @@ button:hover:not(:disabled) {
 
 .project-thumbnail {
     border-radius: 8px;
-    border: 2px solid #00e676;
+    border: 2px solid #00ff9f;
+}
+
+.project-title {
+    font-weight: 700;
+    margin-top: 0.5rem;
 }
 
 .project-stats {
@@ -378,13 +408,26 @@ button:hover:not(:disabled) {
     font-size: 0.95rem;
 }
 
-.project-stats span {
-    display: block; /* Stack the icon and value vertically */
-    line-height: 1.3;
+.comparison-project-summary {
+    border-top: 1px solid #333;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.comparison-project-summary p {
+    margin: 0.3rem 0;
+}
+
+.comparison-project-summary a {
+    font-weight: 700;
+}
+
+.comparison-project-summary a.highlight-winner {
+    font-weight: 900;
 }
 
 .project-btn {
-    background: #00e676;
+    background: #00ff9f;
     color: #1a1a1a;
     padding: 0.6rem 1.2rem;
     border-radius: 6px;
@@ -427,7 +470,7 @@ footer {
 /* --- UX Feedback Styles (kept the same) --- */
 .loading-spinner {
   border: 4px solid rgba(255, 255, 255, 0.1);
-  border-left-color: #00e676;
+  border-left-color: #00ff9f;
   border-radius: 50%;
   width: 20px;
   height: 20px;
