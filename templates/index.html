@@ -113,7 +113,8 @@
                 const errors = response.errors || {};
 
                 if (viewMode === 'compare' && (data.user1 && data.user2)) {
-                    statsDiv.innerHTML = renderComparison(data.user1, data.user2, errors);
+                    // Pass the comparison data to a new helper function
+                    statsDiv.innerHTML = renderComparison(data.user1, data.user2, errors, getWinners(data.user1, data.user2));
                 } else if (data.user1 && viewMode === 'compare') {
                     statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "⚠️ Only one user loaded. Comparison requires both users to be found.");
                 } else if (data.user1) {
@@ -130,8 +131,45 @@
                 submitBtn.textContent = 'Get Stats'; // Fixed text
             }
         });
+
+        // --- NEW HELPER FUNCTION: Determine Winners for Comparison ---
+        function getWinners(data1, data2) {
+            const winners = {};
+            // Stats where higher is better
+            const metrics = [
+                'followers', 'following', 'project_count', 'favorited_projects_count', 
+                'total_loves', 'total_favorites_received', 'total_views', 
+                'avg_loves', 'avg_favorites', 'avg_views'
+            ];
+            
+            // Days since last project: lower is better (more recent activity)
+            // It's checked as a special case because it can be "N/A"
+            if (typeof data1.days_since_last_project === 'number' && typeof data2.days_since_last_project === 'number') {
+                if (data1.days_since_last_project < data2.days_since_last_project) {
+                    winners['days_since_last_project'] = 'user1';
+                } else if (data2.days_since_last_project < data1.days_since_last_project) {
+                    winners['days_since_last_project'] = 'user2';
+                }
+            } else if (data1.days_since_last_project !== "N/A" && data2.days_since_last_project === "N/A") {
+                winners['days_since_last_project'] = 'user1'; // User 1 has data, User 2 does not
+            } else if (data2.days_since_last_project !== "N/A" && data1.days_since_last_project === "N/A") {
+                winners['days_since_last_project'] = 'user2'; // User 2 has data, User 1 does not
+            }
+
+            metrics.forEach(metric => {
+                const val1 = data1[metric] || 0;
+                const val2 = data2[metric] || 0;
+                
+                if (val1 > val2) {
+                    winners[metric] = 'user1';
+                } else if (val2 > val1) {
+                    winners[metric] = 'user2';
+                }
+            });
+            return winners;
+        }
         
-        // --- Reusable Rendering Functions (Remains unchanged from last step) ---
+        // --- Reusable Rendering Functions (Updated) ---
 
         function renderSingle(data, errorMsg, notice = '') {
             if (errorMsg) {
@@ -146,6 +184,7 @@
                         <p><strong>🆔 ID:</strong> ${data.id}</p>
                         <p><strong>📅 Joined:</strong> ${data.joined}</p>
                         <p><strong>🌍 Country:</strong> ${data.country}</p>
+                        <p><strong>🕒 Last Activity:</strong> ${data.last_activity}</p>
                     </div>
 
                     ${renderActivity(data)}
@@ -160,9 +199,10 @@
             `;
         }
 
-        function renderComparison(data1, data2, errors) {
-            const user1HTML = errors.user1 ? `<div class="user-col error-message">❌ ${errors.user1}</div>` : renderComparisonUser(data1, 'User 1');
-            const user2HTML = errors.user2 ? `<div class="user-col error-message">❌ ${errors.user2}</div>` : renderComparisonUser(data2, 'User 2');
+        // Updated to accept and pass 'winners'
+        function renderComparison(data1, data2, errors, winners) {
+            const user1HTML = errors.user1 ? `<div class="user-col error-message">❌ ${errors.user1}</div>` : renderComparisonUser(data1, 'User 1', winners, 'user1');
+            const user2HTML = errors.user2 ? `<div class="user-col error-message">❌ ${errors.user2}</div>` : renderComparisonUser(data2, 'User 2', winners, 'user2');
             
             return `
                 <div class="comparison-container">
@@ -172,7 +212,8 @@
             `;
         }
         
-        function renderComparisonUser(data, label) {
+        // Updated to accept 'winners' and 'currentUserKey' and display last activity
+        function renderComparisonUser(data, label, winners, currentUserKey) {
             return `
                 <div class="user-col">
                     <h3 class="col-header">${label}</h3>
@@ -181,10 +222,11 @@
                         <p><strong>🆔 ID:</strong> ${data.id}</p>
                         <p><strong>📅 Joined:</strong> ${data.joined}</p>
                         <p><strong>🌍 Country:</strong> ${data.country}</p>
+                        <p><strong>🕒 Last Activity:</strong> ${data.last_activity}</p> 
                     </div>
                     <div class="stats-grid comparison-grid">
-                        ${renderCoreStats(data)}
-                        ${renderAverageStats(data)}
+                        ${renderComparisonCoreStats(data, winners, currentUserKey)}
+                        ${renderComparisonAverageStats(data, winners, currentUserKey)}
                     </div>
                     ${renderTopProjectComparison(data)}
                 </div>
@@ -216,11 +258,18 @@
             `;
         }
         
+        // Updated for Single View to include Days Since Last Project
         function renderCoreStats(data) {
+            // Check if days_since_last_project is a number, otherwise show 'N/A'
+            const daysSinceLastProject = typeof data.days_since_last_project === 'number' 
+                                         ? `${data.days_since_last_project.toLocaleString()} days ago` 
+                                         : data.days_since_last_project;
+
             return `
                 <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
                 <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
                 <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
+                <p><strong>📅 Last Project:</strong> ${daysSinceLastProject}</p>
                 <p><strong>⭐ Projects Faved:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
                 <p><strong>✨ TOTAL FAVES REC:</strong> ${data.total_favorites_received.toLocaleString()}</p>
                 <p><strong>❤️ TOTAL LOVES REC:</strong> ${data.total_loves.toLocaleString()}</p>
@@ -228,11 +277,46 @@
             `;
         }
 
+        // NEW function for Comparison View with highlighting
+        function renderComparisonCoreStats(data, winners, currentUserKey) {
+            // Helper function to apply winner class
+            const getWinnerClass = (metric) => winners[metric] === currentUserKey ? 'winner-stat' : '';
+            
+            // Days Since Last Project with winner check
+            const daysSinceLastProject = typeof data.days_since_last_project === 'number' 
+                                         ? `${data.days_since_last_project.toLocaleString()} days ago` 
+                                         : data.days_since_last_project;
+            const daysClass = getWinnerClass('days_since_last_project');
+
+
+            return `
+                <p class="${getWinnerClass('followers')}"><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
+                <p class="${getWinnerClass('following')}"><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
+                <p class="${getWinnerClass('project_count')}"><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
+                <p class="${daysClass}"><strong>📅 Last Project:</strong> ${daysSinceLastProject}</p>
+                <p class="${getWinnerClass('favorited_projects_count')}"><strong>⭐ Projects Faved:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
+                <p class="${getWinnerClass('total_favorites_received')}"><strong>✨ TOTAL FAVES REC:</strong> ${data.total_favorites_received.toLocaleString()}</p>
+                <p class="${getWinnerClass('total_loves')}"><strong>❤️ TOTAL LOVES REC:</strong> ${data.total_loves.toLocaleString()}</p>
+                <p class="${getWinnerClass('total_views')}"><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
+            `;
+        }
+
+        // Used for single user view
         function renderAverageStats(data) {
             return `
                 <p><strong>❤️ Avg. Loves/Project:</strong> ${data.avg_loves.toFixed(2)}</p>
                 <p><strong>✨ Avg. Faves/Project:</strong> ${data.avg_favorites.toFixed(2)}</p>
                 <p><strong>👁️ Avg. Views/Project:</strong> ${data.avg_views.toFixed(2)}</p>
+            `;
+        }
+        
+        // NEW function for Comparison View with highlighting
+        function renderComparisonAverageStats(data, winners, currentUserKey) {
+            const getWinnerClass = (metric) => winners[metric] === currentUserKey ? 'winner-stat' : '';
+            return `
+                <p class="${getWinnerClass('avg_loves')}"><strong>❤️ Avg. Loves/Project:</strong> ${data.avg_loves.toFixed(2)}</p>
+                <p class="${getWinnerClass('avg_favorites')}"><strong>✨ Avg. Faves/Project:</strong> ${data.avg_favorites.toFixed(2)}</p>
+                <p class="${getWinnerClass('avg_views')}"><strong>👁️ Avg. Views/Project:</strong> ${data.avg_views.toFixed(2)}</p>
             `;
         }
 
