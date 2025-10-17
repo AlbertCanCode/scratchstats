@@ -180,6 +180,22 @@ button:disabled {
     background: #242424;
 }
 
+/* --- Comparison Styles for Highlighting the Winner --- */
+.winner-stat {
+    /* Bright green glow and bold text for the winning user's stat */
+    color: #fff;
+    font-weight: bold;
+    background-color: #008855; /* Darker shade of green for background */
+    padding: 2px 5px;
+    border-radius: 4px;
+    box-shadow: 0 0 8px #00ff9f;
+}
+
+/* Ensure strong tag inside winner stat uses white text for contrast */
+.winner-stat strong {
+    color: #fff;
+}
+
 .col-header {
     text-align: center;
     color: #00ff9f;
