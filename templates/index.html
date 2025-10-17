@@ -132,6 +132,49 @@
             }
         });
         
+        // --- Highlighting Helpers (NEW) ---
+
+        // Helper to determine the class based on comparison
+        function getComparisonClass(val1, val2, reverse_win = false) {
+            val1 = typeof val1 === 'string' ? 0 : val1 || 0;
+            val2 = typeof val2 === 'string' ? 0 : val2 || 0;
+
+            if (val1 === val2 && val1 !== 0) {
+                 return 'highlight-tie';
+            } else if (val1 > val2) {
+                return reverse_win ? 'highlight-loser' : 'highlight-winner';
+            } else if (val2 > val1) {
+                return reverse_win ? 'highlight-winner' : 'highlight-loser';
+            }
+            return '';
+        }
+
+        // Helper function to compare two values and return the HTML with highlighting class
+        function compareAndRenderStat(key, label, data1, data2, reverse_win = false) {
+            const val1 = data1[key];
+            const val2 = data2[key];
+            
+            let class1 = getComparisonClass(val1, val2, reverse_win);
+            let class2 = getComparisonClass(val2, val1, reverse_win);
+            
+            // Formatting based on key
+            const formatValue = (value) => {
+                if (key.includes('avg')) {
+                    return typeof value === 'number' ? value.toFixed(2) : value;
+                }
+                if (key === 'days_since_last_project') {
+                     return `${value} days`;
+                }
+                return typeof value === 'number' ? value.toLocaleString() : value;
+            };
+
+            const html1 = `<p class="${class1}"><strong>${label}:</strong> ${formatValue(val1)}</p>`;
+            const html2 = `<p class="${class2}"><strong>${label}:</strong> ${formatValue(val2)}</p>`;
+            
+            return { html1, html2 };
+        }
+
+
         // --- Reusable Rendering Functions (UPDATED) ---
 
         function renderSingle(data, errorMsg, notice = '') {
@@ -163,58 +206,6 @@
             `;
         }
         
-        // Helper function to compare two values and return the HTML with highlighting class
-        function compareAndRenderStat(key, label, data1, data2, reverse_win = false) {
-            const val1 = typeof data1[key] === 'string' ? 0 : data1[key];
-            const val2 = typeof data2[key] === 'string' ? 0 : data2[key];
-            
-            let class1 = '';
-            let class2 = '';
-            
-            // Comparison logic
-            if (val1 > val2) {
-                class1 = reverse_win ? 'highlight-loser' : 'highlight-winner';
-                class2 = reverse_win ? 'highlight-winner' : 'highlight-loser';
-            } else if (val2 > val1) {
-                class1 = reverse_win ? 'highlight-winner' : 'highlight-loser';
-                class2 = reverse_win ? 'highlight-loser' : 'highlight-winner';
-            } else if (val1 === val2 && val1 !== "N/A" && val1 !== 0) {
-                 class1 = 'highlight-tie';
-                 class2 = 'highlight-tie';
-            }
-
-            // Formatting based on key
-            const formatValue = (value) => {
-                const originalValue = data1[key]; // Use original value for formatting
-                if (key.includes('avg')) {
-                    return typeof originalValue === 'number' ? originalValue.toFixed(2) : originalValue;
-                }
-                if (key === 'days_since_last_project') {
-                     return `${originalValue} days`;
-                }
-                return typeof originalValue === 'number' ? originalValue.toLocaleString() : originalValue;
-            };
-
-            const html1 = `<p class="${class1}"><strong>${label}:</strong> ${formatValue(data1[key])}</p>`;
-            
-            // Format for user 2
-            const formatValue2 = (value) => {
-                const originalValue = data2[key]; 
-                if (key.includes('avg')) {
-                    return typeof originalValue === 'number' ? originalValue.toFixed(2) : originalValue;
-                }
-                if (key === 'days_since_last_project') {
-                     return `${originalValue} days`;
-                }
-                return typeof originalValue === 'number' ? originalValue.toLocaleString() : originalValue;
-            };
-            
-            const html2 = `<p class="${class2}"><strong>${label}:</strong> ${formatValue2(data2[key])}</p>`;
-            
-            return { html1, html2 };
-        }
-
-
         function renderComparison(data1, data2, errors) {
             
             // --- Determine Comparison Stats for Highlighting ---
@@ -234,6 +225,13 @@
             // Stats where lower is better (reverse_win=true)
             const daysSinceStats = compareAndRenderStat('days_since_last_project', '⏳ Days Since Project', data1, data2, true);
 
+            // --- Project Highlighting Classes (NEW) ---
+            const loved_class1 = getComparisonClass(data1.most_loved?.loves, data2.most_loved?.loves, false);
+            const loved_class2 = getComparisonClass(data2.most_loved?.loves, data1.most_loved?.loves, false);
+            const viewed_class1 = getComparisonClass(data1.most_viewed?.views, data2.most_viewed?.views, false);
+            const viewed_class2 = getComparisonClass(data2.most_viewed?.views, data1.most_viewed?.views, false);
+
+
             // Generate Comparison User HTML with highlighting
             const renderComparisonUserWithHighlighting = (data, label, errors, isUser1) => {
                 // If the user's data failed to load, display the error instead of trying to render stats.
@@ -244,6 +242,10 @@
                 // Get the appropriate stat HTML based on user
                 const getStatHtml = (stats) => isUser1 ? stats.html1 : stats.html2;
                 
+                // Get the appropriate project highlighting class
+                const lovedClass = isUser1 ? loved_class1 : loved_class2;
+                const viewedClass = isUser1 ? viewed_class1 : viewed_class2;
+
                 return `
                     <div class="user-col">
                         <h3 class="col-header">${label}</h3>
@@ -267,13 +269,13 @@
                             ${getStatHtml(avgFavesStats)}
                             ${getStatHtml(avgViewsStats)}
                         </div>
-                        ${renderTopProjectComparison(data)}
+                        ${renderTopProjectComparison(data, lovedClass, viewedClass)}
                     </div>
                 `;
             };
 
-            const user1HTML = renderComparisonUserWithHighlighting(data1, 'User 1', errors, true);
-            const user2HTML = renderComparisonUserWithHighlighting(data2, 'User 2', errors, false);
+            const user1HTML = renderComparisonUserWithHighlighting(data1, data1.username, errors, true);
+            const user2HTML = renderComparisonUserWithHighlighting(data2, data2.username, errors, false);
 
             return `
                 <div class="comparison-container">
@@ -346,7 +348,7 @@
             `;
         }
         
-        function renderTopProjectComparison(data) {
+        function renderTopProjectComparison(data, lovedClass, viewedClass) {
             const m_loved = data.most_loved;
             const m_viewed = data.most_viewed;
             const m_recent = data.most_recent;
@@ -357,8 +359,8 @@
                 <div class="comparison-project-summary">
                     <h4>Top Projects</h4>
                     ${m_recent ? `<p><strong>🕒 Recent:</strong> <a href="https://scratch.mit.edu/projects/${m_recent.id}">${m_recent.title}</a></p>` : ''}
-                    ${m_loved ? `<p><strong>🏆 Loved:</strong> <a href="https://scratch.mit.edu/projects/${m_loved.id}">${m_loved.title}</a> (${m_loved.loves.toLocaleString()})</p>` : ''}
-                    ${m_viewed ? `<p><strong>👁️ Viewed:</strong> <a href="https://scratch.mit.edu/projects/${m_viewed.id}">${m_viewed.title}</a> (${m_viewed.views.toLocaleString()})</p>` : ''}
+                    ${m_loved ? `<p><strong>🏆 Loved:</strong> <a href="https://scratch.mit.edu/projects/${m_loved.id}" class="${lovedClass}">${m_loved.title}</a> (${m_loved.loves.toLocaleString()})</p>` : ''}
+                    ${m_viewed ? `<p><strong>👁️ Viewed:</strong> <a href="https://scratch.mit.edu/projects/${m_viewed.id}" class="${viewedClass}">${m_viewed.title}</a> (${m_viewed.views.toLocaleString()})</p>` : ''}
                 </div>
             `;
         }
