@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import scratchattach as scratch3
 from datetime import datetime 
+from datetime import date # Import date for comparison
 
 app = Flask(__name__)
 
@@ -38,6 +39,22 @@ def get_all_stats(username):
     most_viewed = max(all_projects, key=lambda p: getattr(p, 'views', 0) or 0) if all_projects else None
     most_recent = all_projects[0] if all_projects else None
 
+    # --- NEW METRIC: Days Since Last Project ---
+    days_since_last_project = "N/A"
+    if most_recent:
+        # Projects list is ordered by most recently updated/created. Use the first one.
+        # Scratch API datetime format is complex, often 'YYYY-MM-DDTHH:MM:SS.mmmZ'
+        try:
+            # Try to get the modified date from the API response (if available, otherwise fallback)
+            project_date_str = most_recent.last_modified
+            # Extract the date part and parse it
+            project_date = datetime.strptime(project_date_str.split('T')[0], '%Y-%m-%d').date()
+            today = date.today()
+            days_since_last_project = (today - project_date).days
+        except Exception as e:
+            # Fallback if date parsing fails
+            days_since_last_project = "Error" 
+    
     # Calculate Averages
     project_count = user.project_count()
     safe_project_count = project_count if project_count > 0 else 1 
@@ -66,6 +83,10 @@ def get_all_stats(username):
         "avg_loves": avg_loves,
         "avg_favorites": avg_favorites,
         "avg_views": avg_views,
+
+        # --- NEW METRICS ADDED ---
+        "days_since_last_project": days_since_last_project,
+        "last_activity": user.status()['last_activity'], # Uses the status() method to get the last action
         
         "profile_pic": f"https://uploads.scratch.mit.edu/get_image/user/{user.id}_90x90.png",
         
