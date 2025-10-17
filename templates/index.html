@@ -113,7 +113,7 @@
                 const errors = response.errors || {};
 
                 if (viewMode === 'compare' && (data.user1 && data.user2)) {
-                    // Pass the comparison data to a new helper function
+                    // MODIFIED: Pass the comparison data to a new helper function with winners
                     statsDiv.innerHTML = renderComparison(data.user1, data.user2, errors, getWinners(data.user1, data.user2));
                 } else if (data.user1 && viewMode === 'compare') {
                     statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "⚠️ Only one user loaded. Comparison requires both users to be found.");
@@ -144,15 +144,18 @@
             
             // Days since last project: lower is better (more recent activity)
             // It's checked as a special case because it can be "N/A"
-            if (typeof data1.days_since_last_project === 'number' && typeof data2.days_since_last_project === 'number') {
-                if (data1.days_since_last_project < data2.days_since_last_project) {
+            const days1 = data1.days_since_last_project;
+            const days2 = data2.days_since_last_project;
+
+            if (typeof days1 === 'number' && typeof days2 === 'number') {
+                if (days1 < days2) {
                     winners['days_since_last_project'] = 'user1';
-                } else if (data2.days_since_last_project < data1.days_since_last_project) {
+                } else if (days2 < days1) {
                     winners['days_since_last_project'] = 'user2';
                 }
-            } else if (data1.days_since_last_project !== "N/A" && data2.days_since_last_project === "N/A") {
+            } else if (days1 !== "N/A" && days2 === "N/A") {
                 winners['days_since_last_project'] = 'user1'; // User 1 has data, User 2 does not
-            } else if (data2.days_since_last_project !== "N/A" && data1.days_since_last_project === "N/A") {
+            } else if (days2 !== "N/A" && days1 === "N/A") {
                 winners['days_since_last_project'] = 'user2'; // User 2 has data, User 1 does not
             }
 
@@ -176,6 +179,7 @@
                 return `<div class="error-message">❌ ${errorMsg}</div>`;
             }
 
+            // MODIFIED: Added Last Activity to user-info
             return `
                 <div class="stats-container single-user">
                     ${notice ? `<div class="notice-message">${notice}</div>` : ''}
@@ -199,7 +203,7 @@
             `;
         }
 
-        // Updated to accept and pass 'winners'
+        // MODIFIED: Added winners parameter
         function renderComparison(data1, data2, errors, winners) {
             const user1HTML = errors.user1 ? `<div class="user-col error-message">❌ ${errors.user1}</div>` : renderComparisonUser(data1, 'User 1', winners, 'user1');
             const user2HTML = errors.user2 ? `<div class="user-col error-message">❌ ${errors.user2}</div>` : renderComparisonUser(data2, 'User 2', winners, 'user2');
@@ -212,7 +216,7 @@
             `;
         }
         
-        // Updated to accept 'winners' and 'currentUserKey' and display last activity
+        // MODIFIED: Added winners and currentUserKey parameters, and Last Activity
         function renderComparisonUser(data, label, winners, currentUserKey) {
             return `
                 <div class="user-col">
@@ -258,7 +262,7 @@
             `;
         }
         
-        // Updated for Single View to include Days Since Last Project
+        // MODIFIED: Updated for Single View to include Days Since Last Project
         function renderCoreStats(data) {
             // Check if days_since_last_project is a number, otherwise show 'N/A'
             const daysSinceLastProject = typeof data.days_since_last_project === 'number' 
