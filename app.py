@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import scratchattach as scratch3
-from datetime import datetime 
-from datetime import date # Import date for comparison
+from datetime import datetime, timedelta 
 
 app = Flask(__name__)
 
@@ -39,22 +38,26 @@ def get_all_stats(username):
     most_viewed = max(all_projects, key=lambda p: getattr(p, 'views', 0) or 0) if all_projects else None
     most_recent = all_projects[0] if all_projects else None
 
-    # --- NEW METRIC: Days Since Last Project ---
+    # --- NEW STAT CALCULATION: DAYS SINCE LAST PROJECT ---
     days_since_last_project = "N/A"
-    if most_recent:
-        # Projects list is ordered by most recently updated/created. Use the first one.
-        # Scratch API datetime format is complex, often 'YYYY-MM-DDTHH:MM:SS.mmmZ'
+    most_recent_activity = "N/A" 
+    if most_recent and getattr(most_recent, 'last_modified', None):
         try:
-            # Try to get the modified date from the API response (if available, otherwise fallback)
-            project_date_str = most_recent.last_modified
-            # Extract the date part and parse it
-            project_date = datetime.strptime(project_date_str.split('T')[0], '%Y-%m-%d').date()
-            today = date.today()
-            days_since_last_project = (today - project_date).days
-        except Exception as e:
-            # Fallback if date parsing fails
-            days_since_last_project = "Error" 
-    
+            # Parse the ISO string to datetime object
+            last_modified_dt = datetime.strptime(most_recent.last_modified.split('.')[0], '%Y-%m-%dT%H:%M:%S')
+            
+            # Calculate days difference (rounding down)
+            time_difference = datetime.now() - last_modified_dt
+            days_since_last_project = time_difference.days
+            
+            # Use the project's last modified time as "Most Recent Activity" date
+            most_recent_activity = last_modified_dt.strftime("%B %d, %Y")
+            
+        except Exception:
+            # Failsafe for parsing errors
+            pass
+
+
     # Calculate Averages
     project_count = user.project_count()
     safe_project_count = project_count if project_count > 0 else 1 
@@ -84,9 +87,9 @@ def get_all_stats(username):
         "avg_favorites": avg_favorites,
         "avg_views": avg_views,
 
-        # --- NEW METRICS ADDED ---
+        # NEW STATS ADDED
         "days_since_last_project": days_since_last_project,
-        "last_activity": user.status()['last_activity'], # Uses the status() method to get the last action
+        "most_recent_activity": most_recent_activity,
         
         "profile_pic": f"https://uploads.scratch.mit.edu/get_image/user/{user.id}_90x90.png",
         
@@ -116,7 +119,7 @@ def get_all_stats(username):
     }
     return stats_data
 
-# --- New Routing Structure (rest of app.py is unchanged) ---
+# --- New Routing Structure ---
 
 # Homepage: Single User Search
 @app.route("/")
