@@ -1,111 +1,403 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="google-site-verification" content="hxiX__ldpj9hmreGCLfXADf1fZYuTdIq3i8BY7imPU0" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scratch Stats Pro</title>
+    <title>Scratch Stats</title>
     <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='title.png') }}">
+
+
 </head>
 <body>
+    
+    <nav>
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="/" id="single-link" class="nav-link">Single Search</a>
+                <a href="/compare" id="compare-link" class="nav-link">Compare Stats</a>
+            </div>
+        </div>
+    </nav>
+    
     <div class="main-content">
-        <h1>Scratch Stats</h1>
-        <form id="statsForm">
-            <input type="text" name="username1" placeholder="User 1" required>
-            {% if view_mode == 'compare' %}
-            <input type="text" name="username2" placeholder="User 2" required>
-            {% endif %}
-            <button type="submit" class="project-btn">Analyze</button>
+        <h1 id="main-header">Scratch Stats</h1>
+        <p id="main-subheader">Enter a Scratch username below 👇</p>
+
+        <form id="statsForm" data-mode="{{ view_mode }}">
+            <div class="input-group">
+                <input type="text" id="username1" name="username1" placeholder="e.g ChessProKing-TM" required>
+                <input type="text" id="username2" name="username2" placeholder="e.g griffpatch">
+            </div>
+            <button type="submit" id="submitBtn">Get Stats</button>
         </form>
 
-        <div id="export-container" style="display:none;">
-            <button id="downloadBtn" class="project-btn" style="background: #4dffb4;">Download JSON</button>
-        </div>
-
-        <div id="chart-wrap" style="display:none;">
-            <canvas id="comparisonChart"></canvas>
-        </div>
-
-        <div id="results"></div>
+        <div id="stats"></div>
     </div>
 
+    <footer>
+        Made by Scratch user <a href="https://scratch.mit.edu/users/ChessProKing-TM" target="_blank">ChessProKing-TM</a>
+    </footer>
+
     <script>
-        let myChart = null;
-        let lastData = null;
+        const form = document.getElementById("statsForm");
+        const statsDiv = document.getElementById("stats");
+        const submitBtn = document.getElementById("submitBtn");
+        const username1Input = document.getElementById("username1");
+        const viewMode = form.dataset.mode;
+        const header = document.getElementById("main-header");
+        const subheader = document.getElementById("main-subheader");
+        
+        // --- Setup View Mode and Navigation ---
+        const username2Input = document.getElementById('username2');
 
-        document.getElementById('statsForm').addEventListener('submit', async (e) => {
+        if (viewMode === 'compare') {
+            header.textContent = 'Compare Two Scratch Users';
+            subheader.textContent = 'Enter the usernames you want to compare.';
+            username2Input.style.display = 'block';
+            username2Input.required = true;
+            document.getElementById('compare-link').classList.add('active');
+        } else {
+            // SINGLE VIEW
+            header.textContent = 'Scratch Stats';
+            subheader.textContent = 'Enter a Scratch username below 👇';
+            username2Input.style.display = 'none';
+            username2Input.required = false;
+            document.getElementById('single-link').classList.add('active');
+        }
+        
+        // --- Form Submission Handler (Handles both views) ---
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = "Loading...";
+            const username1 = username1Input.value.trim();
+            const username2 = username2Input.value.trim();
             
-            const response = await fetch('/api/stats', { method: 'POST', body: new FormData(e.target) });
-            const result = await response.json();
+            // UX Improvement: Loading State and Button Disabling
+            statsDiv.innerHTML = '<div class="loading-spinner"></div> Fetching data...';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Fetching...';
 
-            if (result.error) {
-                resultsDiv.innerHTML = `<p style="color:red">${result.error}</p>`;
+            if (!username1) {
+                statsDiv.textContent = "❌ Please enter a username.";
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Stats'; // Fixed text
                 return;
             }
 
-            lastData = result.data;
-            displayResults(result.data);
-            
-            if (result.data.user1 && result.data.user2) {
-                renderChart(result.data.user1, result.data.user2);
+            if (viewMode === 'compare' && !username2) {
+                statsDiv.textContent = "❌ Please enter both usernames for comparison.";
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Stats'; // Fixed text
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('username1', username1);
+            if (username2) {
+                params.append('username2', username2);
+            }
+
+            try {
+                const res = await fetch("/api/stats", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: params.toString()
+                });
+                
+                const response = await res.json();
+                
+                if (!res.ok) {
+                    statsDiv.textContent = `❌ Error: ${response.error || 'Could not connect to server/API.'}`;
+                    return;
+                }
+                
+                const data = response.data;
+                const errors = response.errors || {};
+
+                if (viewMode === 'compare' && (data.user1 && data.user2)) {
+                    // Pass ALL data to renderComparison to enable full comparison logic
+                    statsDiv.innerHTML = renderComparison(data.user1, data.user2, errors);
+                } else if (data.user1 && viewMode === 'compare') {
+                    statsDiv.innerHTML = renderSingle(data.user1, errors.user1, "⚠️ Only one user loaded. Comparison requires both users to be found.");
+                } else if (data.user1) {
+                    statsDiv.innerHTML = renderSingle(data.user1, errors.user1);
+                } else {
+                    statsDiv.textContent = `❌ Could not retrieve any statistics. ${errors.user1 || errors.user2 || ''}`;
+                }
+
+            } catch (err) {
+                console.error(err);
+                statsDiv.textContent = "❌ Network error. Please check your connection or try again.";
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Stats'; // Fixed text
             }
         });
+        
+        // --- Highlighting Helpers (NEW) ---
 
-        function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
-            document.getElementById('export-container').style.display = 'block';
-            let html = '<div class="stats-grid">';
+        // Helper to determine the class based on comparison
+        function getComparisonClass(val1, val2, reverse_win = false) {
+            val1 = typeof val1 === 'string' ? 0 : val1 || 0;
+            val2 = typeof val2 === 'string' ? 0 : val2 || 0;
+
+            if (val1 === val2 && val1 !== 0) {
+                 return 'highlight-tie';
+            } else if (val1 > val2) {
+                return reverse_win ? 'highlight-loser' : 'highlight-winner';
+            } else if (val2 > val1) {
+                return reverse_win ? 'highlight-winner' : 'highlight-loser';
+            }
+            return '';
+        }
+
+        // Helper function to compare two values and return the HTML with highlighting class
+        function compareAndRenderStat(key, label, data1, data2, reverse_win = false) {
+            const val1 = data1[key];
+            const val2 = data2[key];
             
-            const u1 = data.user1;
-            const u2 = data.user2;
+            let class1 = getComparisonClass(val1, val2, reverse_win);
+            let class2 = getComparisonClass(val2, val1, reverse_win);
+            
+            // Formatting based on key
+            const formatValue = (value) => {
+                if (key.includes('avg')) {
+                    return typeof value === 'number' ? value.toFixed(2) : value;
+                }
+                if (key === 'days_since_last_project') {
+                     return `${value} days`;
+                }
+                return typeof value === 'number' ? value.toLocaleString() : value;
+            };
 
-            const getWin = (u, other, key) => (other && u[key] > other[key]) ? 'winner-glow' : '';
+            const html1 = `<p class="${class1}"><strong>${label}:</strong> ${formatValue(val1)}</p>`;
+            const html2 = `<p class="${class2}"><strong>${label}:</strong> ${formatValue(val2)}</p>`;
+            
+            return { html1, html2 };
+        }
 
-            [u1, u2].forEach(u => {
-                if (!u) return;
-                const other = (u === u1) ? u2 : u1;
-                html += `
-                    <div class="user-card">
-                        <img src="${u.profile_pic}" class="profile-img">
-                        <h2>${u.username}</h2>
-                        <p>Followers: <span class="${getWin(u, other, 'followers')}">${u.followers}</span></p>
-                        <p>Total Loves: <span class="${getWin(u, other, 'total_loves')}">${u.total_loves}</span></p>
-                        <p>Projects: <span class="${getWin(u, other, 'project_count')}">${u.project_count}</span></p>
+
+        // --- Reusable Rendering Functions (UPDATED) ---
+
+        function renderSingle(data, errorMsg, notice = '') {
+            if (errorMsg) {
+                return `<div class="error-message">❌ ${errorMsg}</div>`;
+            }
+
+            return `
+                <div class="stats-container single-user">
+                    ${notice ? `<div class="notice-message">${notice}</div>` : ''}
+                    ${renderProfileHeader(data)}
+                    <div class="user-info">
+                        <p><strong>🆔 ID:</strong> ${data.id}</p>
+                        <p><strong>📅 Joined:</strong> ${data.joined}</p>
+                        <p><strong>🌍 Country:</strong> ${data.country}</p>
+                        <p><strong>🕒 Recent Activity:</strong> ${data.most_recent_activity}</p>
+                        <p><strong>⏳ Days Since Project:</strong> ${data.days_since_last_project} days</p>
+                    </div>
+
+                    ${renderActivity(data)}
+
+                    <div class="stats-grid">
+                        ${renderCoreStats(data)}
+                        ${renderAverageStats(data)}
+                    </div>
+                    
+                    ${renderProjectHighlights(data)}
+                </div>
+            `;
+        }
+        
+        function renderComparison(data1, data2, errors) {
+            
+            // --- Determine Comparison Stats for Highlighting ---
+            
+            // Stats where higher is better (reverse_win=false)
+            const followerStats = compareAndRenderStat('followers', '👥 Followers', data1, data2, false);
+            const followingStats = compareAndRenderStat('following', '➕ Following', data1, data2, false);
+            const totalProjectsStats = compareAndRenderStat('project_count', '📁 Total Projects', data1, data2, false);
+            const favedProjectsStats = compareAndRenderStat('favorited_projects_count', '⭐ Projects Faved', data1, data2, false);
+            const totalFavesStats = compareAndRenderStat('total_favorites_received', '✨ TOTAL FAVES REC', data1, data2, false);
+            const totalLovesStats = compareAndRenderStat('total_loves', '❤️ TOTAL LOVES REC', data1, data2, false);
+            const totalViewsStats = compareAndRenderStat('total_views', '👁️ Total Views', data1, data2, false);
+            const avgLovesStats = compareAndRenderStat('avg_loves', '❤️ Avg. Loves/Project', data1, data2, false);
+            const avgFavesStats = compareAndRenderStat('avg_favorites', '✨ Avg. Faves/Project', data1, data2, false);
+            const avgViewsStats = compareAndRenderStat('avg_views', '👁️ Avg. Views/Project', data1, data2, false);
+            
+            // Stats where lower is better (reverse_win=true)
+            const daysSinceStats = compareAndRenderStat('days_since_last_project', '⏳ Days Since Project', data1, data2, true);
+
+            // --- Project Highlighting Classes (NEW) ---
+            const loved_class1 = getComparisonClass(data1.most_loved?.loves, data2.most_loved?.loves, false);
+            const loved_class2 = getComparisonClass(data2.most_loved?.loves, data1.most_loved?.loves, false);
+            const viewed_class1 = getComparisonClass(data1.most_viewed?.views, data2.most_viewed?.views, false);
+            const viewed_class2 = getComparisonClass(data2.most_viewed?.views, data1.most_viewed?.views, false);
+
+
+            // Generate Comparison User HTML with highlighting
+            const renderComparisonUserWithHighlighting = (data, label, errors, isUser1) => {
+                // If the user's data failed to load, display the error instead of trying to render stats.
+                if (errors.user1 && isUser1 || errors.user2 && !isUser1) {
+                    return `<div class="user-col error-message">❌ ${isUser1 ? errors.user1 : errors.user2}</div>`;
+                }
+                
+                // Get the appropriate stat HTML based on user
+                const getStatHtml = (stats) => isUser1 ? stats.html1 : stats.html2;
+                
+                // Get the appropriate project highlighting class
+                const lovedClass = isUser1 ? loved_class1 : loved_class2;
+                const viewedClass = isUser1 ? viewed_class1 : viewed_class2;
+
+                return `
+                    <div class="user-col">
+                        <h3 class="col-header">${label}</h3>
+                        ${renderProfileHeader(data)}
+                        <div class="user-info">
+                            <p><strong>🆔 ID:</strong> ${data.id}</p>
+                            <p><strong>📅 Joined:</strong> ${data.joined}</p>
+                            <p><strong>🌍 Country:</strong> ${data.country}</p>
+                            <p><strong>🕒 Recent Activity:</strong> ${data.most_recent_activity}</p>
+                            ${getStatHtml(daysSinceStats)}
+                        </div>
+                        <div class="stats-grid comparison-grid">
+                            ${getStatHtml(followerStats)}
+                            ${getStatHtml(followingStats)}
+                            ${getStatHtml(totalProjectsStats)}
+                            ${getStatHtml(favedProjectsStats)}
+                            ${getStatHtml(totalFavesStats)}
+                            ${getStatHtml(totalLovesStats)}
+                            ${getStatHtml(totalViewsStats)}
+                            ${getStatHtml(avgLovesStats)}
+                            ${getStatHtml(avgFavesStats)}
+                            ${getStatHtml(avgViewsStats)}
+                        </div>
+                        ${renderTopProjectComparison(data, lovedClass, viewedClass)}
                     </div>
                 `;
-            });
-            html += '</div>';
-            resultsDiv.innerHTML = html;
+            };
+
+            const user1HTML = renderComparisonUserWithHighlighting(data1, data1.username, errors, true);
+            const user2HTML = renderComparisonUserWithHighlighting(data2, data2.username, errors, false);
+
+            return `
+                <div class="comparison-container">
+                    ${user1HTML}
+                    ${user2HTML}
+                </div>
+                <div class="highlight-key">
+                    <span class="highlight-winner">Winner</span>
+                    <span class="highlight-loser">Loser</span>
+                    <span class="highlight-tie">Tie</span>
+                </div>
+            `;
         }
 
-        function renderChart(u1, u2) {
-            document.getElementById('chart-wrap').style.display = 'block';
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            if (myChart) myChart.destroy();
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Followers', 'Loves', 'Projects'],
-                    datasets: [
-                        { label: u1.username, data: [u1.followers, u1.total_loves, u1.project_count], backgroundColor: '#00ff9f' },
-                        { label: u2.username, data: [u2.followers, u2.total_loves, u2.project_count], backgroundColor: '#4dffb4bb' }
-                    ]
-                },
-                options: { plugins: { legend: { labels: { color: '#fff' } } } }
-            });
+        function renderProfileHeader(data) {
+            return `
+                <div class="profile">
+                    <img src="${data.profile_pic}" alt="Profile Picture">
+                    <div>
+                        <h2>${data.username} 
+                            ${data.scratchteam ? '<span class="scratch-team-badge">⭐️ Scratch Team</span>' : ''}
+                        </h2>
+                        <a href="https://scratch.mit.edu/users/${data.username}" target="_blank" class="profile-btn">View Profile ↗️</a>
+                    </div>
+                </div>
+            `;
         }
 
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            const blob = new Blob([JSON.stringify(lastData, null, 2)], {type : 'application/json'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'stats.json';
-            a.click();
-        });
+        function renderActivity(data) {
+             return `
+                <div class="activity-section">
+                    <h4>💬 About Me</h4>
+                    <p class="activity-content">${data.about_me || 'Nothing here yet!'}</p>
+                    <h4>💻 What I'm Working On</h4>
+                    <p class="activity-content">${data.wiwo || 'Nothing here yet!'}</p>
+                </div>
+            `;
+        }
+        
+        function renderCoreStats(data) {
+            return `
+                <p><strong>👥 Followers:</strong> ${data.followers.toLocaleString()}</p>
+                <p><strong>➕ Following:</strong> ${data.following.toLocaleString()}</p>
+                <p><strong>📁 Total Projects:</strong> ${data.project_count.toLocaleString()}</p>
+                <p><strong>⭐ Projects Faved:</strong> ${data.favorited_projects_count.toLocaleString()}</p>
+                <p><strong>✨ TOTAL FAVES REC:</strong> ${data.total_favorites_received.toLocaleString()}</p>
+                <p><strong>❤️ TOTAL LOVES REC:</strong> ${data.total_loves.toLocaleString()}</p>
+                <p><strong>👁️ Total Views:</strong> ${data.total_views.toLocaleString()}</p>
+            `;
+        }
+
+        function renderAverageStats(data) {
+            return `
+                <p><strong>❤️ Avg. Loves/Project:</strong> ${data.avg_loves.toFixed(2)}</p>
+                <p><strong>✨ Avg. Faves/Project:</strong> ${data.avg_favorites.toFixed(2)}</p>
+                <p><strong>👁️ Avg. Views/Project:</strong> ${data.avg_views.toFixed(2)}</p>
+            `;
+        }
+
+        function renderProjectHighlights(data) {
+            const hasProjects = data.most_loved || data.most_viewed || data.most_recent;
+            if (!hasProjects) return "<p>No projects found.</p>";
+
+            return `
+                <div class="project-highlights-container">
+                    ${renderProjectBox(data.most_recent, "🕒 Most Recent Project", "🕒 Last Updated", "id", "loves", "views", "favorites")}
+                    ${renderProjectBox(data.most_loved, "🏆 Most Loved Project", "❤️ Loves", "loves", "views", "favorites")}
+                    ${renderProjectBox(data.most_viewed, "👁️ Most Viewed Project", "👁️ Views", "views", "loves", "favorites")}
+                </div>
+            `;
+        }
+        
+        function renderTopProjectComparison(data, lovedClass, viewedClass) {
+            const m_loved = data.most_loved;
+            const m_viewed = data.most_viewed;
+            const m_recent = data.most_recent;
+
+            if (!m_loved && !m_viewed && !m_recent) return '';
+
+            return `
+                <div class="comparison-project-summary">
+                    <h4>Top Projects</h4>
+                    ${m_recent ? `<p><strong>🕒 Recent:</strong> <a href="https://scratch.mit.edu/projects/${m_recent.id}">${m_recent.title}</a></p>` : ''}
+                    ${m_loved ? `<p><strong>🏆 Loved:</strong> <a href="https://scratch.mit.edu/projects/${m_loved.id}" class="${lovedClass}">${m_loved.title}</a> (${m_loved.loves.toLocaleString()})</p>` : ''}
+                    ${m_viewed ? `<p><strong>👁️ Viewed:</strong> <a href="https://scratch.mit.edu/projects/${m_viewed.id}" class="${viewedClass}">${m_viewed.title}</a> (${m_viewed.views.toLocaleString()})</p>` : ''}
+                </div>
+            `;
+        }
+
+        function renderProjectBox(project, title, metricLabel, metricKey, ...otherKeys) {
+            if (!project) return '';
+            
+            let statsHtml = '';
+            
+            if (metricKey === 'id') {
+                 statsHtml = `<span>${metricLabel} (ID ${project.id})</span>`;
+            } else {
+                 statsHtml = `<span>${metricLabel} ${project[metricKey].toLocaleString()}</span>`;
+            }
+
+            otherKeys.forEach(key => {
+                const label = key === 'loves' ? '❤️' : key === 'views' ? '👁️' : key === 'favorites' ? '⭐' : '';
+                const value = project[key] || 0;
+                if (label) statsHtml += `<span>${label} ${value.toLocaleString()}</span>`;
+            });
+
+            return `
+                <div class="project-box">
+                    <h3>${title}</h3>
+                    <img src="https://cdn2.scratch.mit.edu/get_image/project/${project.id}_144x108.png" 
+                         alt="${project.title} thumbnail" class="project-thumbnail">
+                    <p class="project-title">${project.title}</p>
+                    <div class="project-stats">
+                        ${statsHtml}
+                    </div>
+                    <a href="https://scratch.mit.edu/projects/${project.id}" target="_blank" class="project-btn">View Project ↗️</a>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
