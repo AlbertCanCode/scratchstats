@@ -1,9 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap'); /* Added 300 weight */
 
 /* --- GLOBAL STYLES --- */
+
+html {
+  background-color: #0a0a0a; /* Ensures the very bottom layer of the browser is dark */
+}
+
 body {
   font-family: "Poppins", sans-serif;
   background: linear-gradient(135deg, #0a0a0a, #1a1a1a); /* Deeper, cleaner dark background */
+  background-color: #0a0a0a; /* Fallback and color for overscroll */
+  overscroll-behavior: none;  /* Stops the "bounce" and white gap */
   color: #f0f0f0; 
   text-align: center;
   margin: 0;
@@ -11,7 +18,6 @@ body {
   padding-top: 70px; 
   transition: background 0.5s;
 }
-
 a {
   color: #00ff9f; /* Bright accent color */
   text-decoration: none;
