@@ -460,7 +460,13 @@ def user_page(username):
 
 @app.route("/compare")
 def compare_view():
-    return render_template("index.html", view_mode="compare", active="compare")
+    return render_template(
+        "index.html",
+        view_mode="compare",
+        active="compare",
+        page_title="Compare Scratch Users - Scratch Stats",
+        page_description="Compare two Scratch users side by side: followers, loves, views, favorites and top projects.",
+    )
 
 
 @app.route("/compare/<username1>/<username2>")
@@ -480,7 +486,40 @@ def compare_users_page(username1, username2):
 
 @app.route("/leaderboard")
 def leaderboard_page():
-    return render_template("leaderboard.html", active="leaderboard", page_title="Leaderboard - Scratch Stats")
+    return render_template(
+        "leaderboard.html",
+        active="leaderboard",
+        page_title="Leaderboard - Scratch Stats",
+        page_description="The top Scratchers looked up on Scratch Stats, ranked by followers, loves, favorites, views and projects.",
+    )
+
+
+SITEMAP_PATHS = ["/", "/compare", "/leaderboard"]
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    body = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /api/\n"
+        "Disallow: /img/\n"
+        f"Sitemap: {request.url_root}sitemap.xml\n"
+    )
+    return Response(body, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    root = request.url_root.rstrip("/")
+    urls = "".join(f"  <url><loc>{root}{path}</loc></url>\n" for path in SITEMAP_PATHS)
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{urls}"
+        "</urlset>\n"
+    )
+    return Response(body, mimetype="application/xml")
 
 
 # --- API ---
