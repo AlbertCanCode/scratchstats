@@ -5,6 +5,7 @@ import sqlite3
 import threading
 import time
 from collections import OrderedDict
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 import requests
@@ -76,12 +77,27 @@ class TTLCache:
 stats_cache = TTLCache(ttl=300, max_size=500)  # 5 minutes, 500 users
 
 
-# --- Snapshot history (SQLite) ---
-# Set DB_PATH to a path on a persistent disk, otherwise history resets whenever
-# the host wipes its filesystem (e.g. Render free tier restarts/deploys).
+# --- Snapshot history ---
+# With DATABASE_URL set (e.g. a free Neon Postgres) the data survives restarts and
+# redeploys. Without it, it falls back to a local SQLite file (DB_PATH), which a
+# free Render instance wipes whenever it restarts or spins down.
+DATABASE_URL = os.environ.get("DATABASE_URL") or None
 DB_PATH = os.environ.get(
     "DB_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "stats.db")
 )
+
+
+class DatabaseUnavailable(Exception):
+    pass
+
+
+if DATABASE_URL:
+    import psycopg
+    from psycopg.rows import dict_row
+
+    DB_ERRORS = (psycopg.Error, DatabaseUnavailable)
+else:
+    DB_ERRORS = (sqlite3.Error, DatabaseUnavailable)
 
 LEADERBOARD_METRICS = {
     "followers": "followers",
@@ -93,62 +109,96 @@ LEADERBOARD_METRICS = {
 LEADERBOARD_SIZE = 25
 HISTORY_DAYS = 365
 
+# BIGINT: view totals for large accounts can pass the 32-bit integer limit.
+SCHEMA = """
+    CREATE TABLE IF NOT EXISTS snapshots (
+        username        TEXT NOT NULL,
+        day             TEXT NOT NULL,
+        display_name    TEXT NOT NULL,
+        scratch_id      BIGINT,
+        followers       BIGINT NOT NULL,
+        following       BIGINT NOT NULL,
+        projects        BIGINT NOT NULL,
+        total_loves     BIGINT NOT NULL,
+        total_favorites BIGINT NOT NULL,
+        total_views     BIGINT NOT NULL,
+        PRIMARY KEY (username, day)
+    )
+"""
 
-def _db():
+
+def _connect():
+    if DATABASE_URL:
+        # prepare_threshold=None: safe behind Neon's pooled (pgbouncer) connections.
+        return psycopg.connect(
+            DATABASE_URL, connect_timeout=10, row_factory=dict_row, prepare_threshold=None
+        )
     conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
 
 
+def _sql(query):
+    """Queries are written with SQLite-style ? placeholders."""
+    return query.replace("?", "%s") if DATABASE_URL else query
+
+
+_schema_ready = False
+_schema_lock = threading.Lock()
+
+
 def init_db():
-    try:
-        conn = _db()
+    global _schema_ready
+    with _schema_lock:
+        if _schema_ready:
+            return True
         try:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS snapshots (
-                    username        TEXT NOT NULL,
-                    day             TEXT NOT NULL,
-                    display_name    TEXT NOT NULL,
-                    scratch_id      INTEGER,
-                    followers       INTEGER NOT NULL,
-                    following       INTEGER NOT NULL,
-                    projects        INTEGER NOT NULL,
-                    total_loves     INTEGER NOT NULL,
-                    total_favorites INTEGER NOT NULL,
-                    total_views     INTEGER NOT NULL,
-                    PRIMARY KEY (username, day)
-                )
-                """
-            )
-            conn.commit()
-        finally:
-            conn.close()
-    except sqlite3.Error:
-        logger.exception("Could not initialise the history database at %s", DB_PATH)
+            conn = _connect()
+            try:
+                conn.execute(SCHEMA)
+                conn.commit()
+            finally:
+                conn.close()
+            _schema_ready = True
+        except DB_ERRORS:
+            logger.exception("Could not initialise the history database")
+        return _schema_ready
+
+
+@contextmanager
+def _conn():
+    if not init_db():
+        raise DatabaseUnavailable("history database is not available")
+    conn = _connect()
+    try:
+        yield conn
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def record_snapshot(stats):
     """Keep one row per user per UTC day; later lookups the same day overwrite it."""
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     try:
-        conn = _db()
-        try:
+        with _conn() as conn:
             conn.execute(
-                """
-                INSERT INTO snapshots (username, day, display_name, scratch_id, followers,
-                    following, projects, total_loves, total_favorites, total_views)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(username, day) DO UPDATE SET
-                    display_name = excluded.display_name,
-                    scratch_id = excluded.scratch_id,
-                    followers = excluded.followers,
-                    following = excluded.following,
-                    projects = excluded.projects,
-                    total_loves = excluded.total_loves,
-                    total_favorites = excluded.total_favorites,
-                    total_views = excluded.total_views
-                """,
+                _sql(
+                    """
+                    INSERT INTO snapshots (username, day, display_name, scratch_id, followers,
+                        following, projects, total_loves, total_favorites, total_views)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(username, day) DO UPDATE SET
+                        display_name = excluded.display_name,
+                        scratch_id = excluded.scratch_id,
+                        followers = excluded.followers,
+                        following = excluded.following,
+                        projects = excluded.projects,
+                        total_loves = excluded.total_loves,
+                        total_favorites = excluded.total_favorites,
+                        total_views = excluded.total_views
+                    """
+                ),
                 (
                     stats["username"].lower(),
                     day,
@@ -162,28 +212,24 @@ def record_snapshot(stats):
                     stats["total_views"],
                 ),
             )
-            conn.commit()
-        finally:
-            conn.close()
-    except sqlite3.Error:
+    except DB_ERRORS:
         logger.exception("Could not record snapshot for %s", stats.get("username"))
 
 
 def get_history(username):
     try:
-        conn = _db()
-        try:
+        with _conn() as conn:
             rows = conn.execute(
-                """
-                SELECT day, followers, following, projects, total_loves, total_favorites, total_views
-                FROM snapshots WHERE username = ?
-                ORDER BY day DESC LIMIT ?
-                """,
+                _sql(
+                    """
+                    SELECT day, followers, following, projects, total_loves, total_favorites, total_views
+                    FROM snapshots WHERE username = ?
+                    ORDER BY day DESC LIMIT ?
+                    """
+                ),
                 (username.lower(), HISTORY_DAYS),
             ).fetchall()
-        finally:
-            conn.close()
-    except sqlite3.Error:
+    except DB_ERRORS:
         logger.exception("Could not read history for %s", username)
         return []
     return [
@@ -203,23 +249,22 @@ def get_history(username):
 def get_leaderboard(metric):
     column = LEADERBOARD_METRICS[metric]
     try:
-        conn = _db()
-        try:
+        with _conn() as conn:
             rows = conn.execute(
-                f"""
-                SELECT s.display_name, s.scratch_id, s.day, s.followers, s.projects,
-                       s.total_loves, s.total_favorites, s.total_views
-                FROM snapshots s
-                JOIN (SELECT username, MAX(day) AS day FROM snapshots GROUP BY username) latest
-                  ON s.username = latest.username AND s.day = latest.day
-                ORDER BY s.{column} DESC, s.display_name COLLATE NOCASE ASC
-                LIMIT ?
-                """,
+                _sql(
+                    f"""
+                    SELECT s.display_name, s.scratch_id, s.day, s.followers, s.projects,
+                           s.total_loves, s.total_favorites, s.total_views
+                    FROM snapshots s
+                    JOIN (SELECT username, MAX(day) AS day FROM snapshots GROUP BY username) latest
+                      ON s.username = latest.username AND s.day = latest.day
+                    ORDER BY s.{column} DESC, LOWER(s.display_name) ASC
+                    LIMIT ?
+                    """
+                ),
                 (LEADERBOARD_SIZE,),
             ).fetchall()
-        finally:
-            conn.close()
-    except sqlite3.Error:
+    except DB_ERRORS:
         logger.exception("Could not read leaderboard")
         return []
     return [
