@@ -248,6 +248,20 @@ def _format_join_date(raw):
         return "Unknown"
 
 
+def _parse_scratch_datetime(raw):
+    # Scratch sends e.g. "2025-06-01T12:34:56.000Z"; the first 19 chars are enough.
+    try:
+        return datetime.strptime(raw[:19], "%Y-%m-%dT%H:%M:%S")
+    except (TypeError, ValueError):
+        return None
+
+
+def _project_created(project):
+    return _parse_scratch_datetime(getattr(project, "created", None)) or _parse_scratch_datetime(
+        getattr(project, "share_date", None)
+    )
+
+
 def _project_summary(project):
     if not project:
         return None
@@ -281,7 +295,13 @@ def _build_stats(user):
 
     most_loved = max(all_projects, key=lambda p: getattr(p, "loves", 0) or 0) if all_projects else None
     most_viewed = max(all_projects, key=lambda p: getattr(p, "views", 0) or 0) if all_projects else None
-    most_recent = all_projects[0] if all_projects else None
+    # "Most recent" means the newest project by creation date, not the last one
+    # edited (editing an old project would otherwise make it look brand new).
+    dated = [(d, p) for p in all_projects if (d := _project_created(p)) is not None]
+    if dated:
+        newest_created, most_recent = max(dated, key=lambda pair: pair[0])
+    else:
+        newest_created, most_recent = None, (all_projects[0] if all_projects else None)
 
     followers = user.follower_count()
     following = user.following_count()
@@ -290,16 +310,10 @@ def _build_stats(user):
     days_since_last_project = "N/A"
     most_recent_activity = "N/A"
 
-    if most_recent and getattr(most_recent, "last_modified", None):
-        try:
-            last_modified_dt = datetime.strptime(
-                most_recent.last_modified.split(".")[0], "%Y-%m-%dT%H:%M:%S"
-            )
-            now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
-            days_since_last_project = max((now_utc - last_modified_dt).days, 0)
-            most_recent_activity = last_modified_dt.strftime("%B %d, %Y")
-        except (ValueError, AttributeError):
-            pass
+    if newest_created is not None:
+        today_utc = datetime.now(timezone.utc).date()
+        days_since_last_project = max((today_utc - newest_created.date()).days, 0)
+        most_recent_activity = newest_created.strftime("%B %d, %Y")
 
     project_count = user.project_count()
     safe_project_count = project_count if project_count > 0 else 1

@@ -232,7 +232,7 @@
                     <p><strong>🆔 ID:</strong> ${fmtNum(data.id)}</p>
                     <p><strong>📅 Joined:</strong> ${escapeHtml(data.joined)}</p>
                     <p><strong>🌍 Country:</strong> ${escapeHtml(data.country)}</p>
-                    <p><strong>🕒 Recent Activity:</strong> ${escapeHtml(data.most_recent_activity)}</p>
+                    <p><strong>🕒 Latest Project:</strong> ${escapeHtml(data.most_recent_activity)}</p>
                     <p><strong>⏳ Days Since Project:</strong> ${fmtDays(data.days_since_last_project)}</p>
                 </div>
 
@@ -289,7 +289,7 @@
                         <p><strong>🆔 ID:</strong> ${fmtNum(data.id)}</p>
                         <p><strong>📅 Joined:</strong> ${escapeHtml(data.joined)}</p>
                         <p><strong>🌍 Country:</strong> ${escapeHtml(data.country)}</p>
-                        <p><strong>🕒 Recent Activity:</strong> ${escapeHtml(data.most_recent_activity)}</p>
+                        <p><strong>🕒 Latest Project:</strong> ${escapeHtml(data.most_recent_activity)}</p>
                         ${pick(daysSinceStats)}
                     </div>
                     <div class="stats-grid comparison-grid">
@@ -372,7 +372,7 @@
 
         return `
             <div class="project-highlights-container">
-                ${renderProjectBox(data.most_recent, "🕒 Most Recent Project", "🕒 Last Updated", "id", "loves", "views", "favorites")}
+                ${renderProjectBox(data.most_recent, "🕒 Newest Project", "🕒 Created", "id", "loves", "views", "favorites")}
                 ${renderProjectBox(data.most_loved, "🏆 Most Loved Project", "❤️ Loves", "loves", "views", "favorites")}
                 ${renderProjectBox(data.most_viewed, "👁️ Most Viewed Project", "👁️ Views", "views", "loves", "favorites")}
             </div>
