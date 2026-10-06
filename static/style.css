@@ -160,6 +160,7 @@ button:disabled {
   text-align: left;
   max-width: 1200px;
   width: 100%; 
+  box-sizing: border-box;
   border: 1px solid #2e2e2e; 
   opacity: 0; /* Initial state for animation */
   animation: fadeIn 0.8s ease-out forwards;
@@ -454,8 +455,23 @@ footer {
 
 /* --- MEDIA QUERIES (Small Screen Adjustments) --- */
 @media (max-width: 600px) {
+    .nav-container {
+        padding: 0.8rem 0.5rem;
+    }
     .nav-link {
-        margin: 0 0.5rem;
+        margin: 0 0.1rem;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9rem;
+    }
+    #stats {
+        padding: 1rem;
+    }
+    .user-col {
+        min-width: 0;
+        padding: 1rem;
+    }
+    .leaderboard-box {
+        padding: 1rem;
     }
     .input-group input {
         width: 90%;
@@ -544,3 +560,187 @@ footer {
 .close-btn:hover { color: #00ff9f; }
 
 .about-links { text-align: center; margin-top: 1.5rem; }
+
+
+/* --- RESULT ACTIONS (copy link / download image) --- */
+.result-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+}
+
+.result-actions[hidden] {
+    display: none;
+}
+
+.action-btn {
+    background: #1e1e1e;
+    color: #00ff9f;
+    border: 1px solid #00ff9f;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9rem;
+    box-shadow: none;
+}
+
+.action-btn:hover:not(:disabled) {
+    background: #00ff9f;
+    color: #1a1a1a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 255, 159, 0.4);
+}
+
+
+/* --- TABS (history chart + leaderboard) --- */
+.tab-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+
+.tab-btn {
+    background: #1e1e1e;
+    color: #b0b0b0;
+    border: 1px solid #333;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    box-shadow: none;
+}
+
+.tab-btn:hover:not(:disabled) {
+    background: #242424;
+    color: #00ff9f;
+    transform: none;
+    box-shadow: none;
+}
+
+.tab-btn.active,
+.tab-btn.active:hover:not(:disabled) {
+    background: #00ff9f;
+    color: #1a1a1a;
+    font-weight: 700;
+    border-color: #00ff9f;
+}
+
+
+/* --- GROWTH HISTORY CHART --- */
+.history-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.history-section h4 {
+    margin: 0.4rem 0;
+    color: #4dffb4;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.history-note {
+    color: #aaa;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.history-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.chart-grid {
+    stroke: #2e2e2e;
+    stroke-width: 1;
+}
+
+.chart-label {
+    fill: #888;
+    font-size: 11px;
+}
+
+.chart-line {
+    fill: none;
+    stroke: #00ff9f;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 159, 0.7));
+}
+
+.chart-dot {
+    fill: #101010;
+    stroke: #00ff9f;
+    stroke-width: 2;
+}
+
+.chart-dot:hover {
+    fill: #00ff9f;
+}
+
+
+/* --- LEADERBOARD --- */
+.leaderboard-box {
+    margin: 1.5rem auto 0;
+    background: #101010;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid #2e2e2e;
+    box-shadow: 0 0 20px rgba(0, 255, 159, 0.4), 0 8px 40px rgba(0, 0, 0, 0.8);
+    max-width: 900px;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid #2e2e2e;
+    white-space: nowrap;
+}
+
+.leaderboard-table th {
+    color: #b0b0b0;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.leaderboard-table .sorted {
+    color: #00ff9f;
+    font-weight: 700;
+}
+
+.leaderboard-table tbody tr:hover {
+    background: #1a1a1a;
+}
+
+.leaderboard-table .rank,
+.leaderboard-table th:first-child {
+    text-align: center;
+    width: 3rem;
+}
+
+.leaderboard-table .lb-user,
+.leaderboard-table .lb-user-head {
+    text-align: left;
+}
+
+.lb-user img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #00ff9f;
+    vertical-align: middle;
+    margin-right: 0.6rem;
+}
