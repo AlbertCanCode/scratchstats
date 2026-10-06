@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="google-site-verification" content="hxiX__ldpj9hmreGCLfXADf1fZYuTdIq3i8BY7imPU0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set title = page_title or 'Scratch Stats' %}
+    {% set description = page_description or 'Look up and compare stats for any Scratch user: followers, loves, views, top projects and more.' %}
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Scratch Stats">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ description }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='title.png', _external=True) }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="{{ description }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='title.png') }}">
+</head>
+<body>
+
+    <nav>
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="/" id="single-link" class="nav-link{% if active == 'single' %} active{% endif %}">Single Search</a>
+                <a href="/compare" id="compare-link" class="nav-link{% if active == 'compare' %} active{% endif %}">Compare Stats</a>
+                <a href="/leaderboard" id="leaderboard-link" class="nav-link{% if active == 'leaderboard' %} active{% endif %}">Leaderboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+    Made by Scratch user <a href="https://scratch.mit.edu/users/ChessProKing-TM" target="_blank" rel="noopener">ChessProKing-TM</a> |
+    <a href="javascript:void(0)" id="about-btn">About Us</a>
+    </footer>
+    <div id="aboutModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>About Scratch Stats</h2>
+        <p>Welcome! I'm <strong>ChessProKing-TM</strong>. I built this website to help Scratchers dive deep into their analytics and compare their growth with others.</p>
+        <p>This site uses <code>scratchattach</code> and Flask to pull real-time data from the Scratch API.</p>
+        <div class="about-links">
+            <a href="https://scratch.mit.edu/users/ChessProKing-TM" target="_blank" rel="noopener" class="profile-btn">Follow me on Scratch</a>
+        </div>
+    </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

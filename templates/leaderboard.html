@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Leaderboard</h1>
+        <p id="main-subheader">The top Scratchers that have been looked up on this site.</p>
+
+        <div class="tab-row" id="leaderboardTabs" role="tablist"></div>
+
+        <div id="leaderboard" class="leaderboard-box"></div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='leaderboard.js') }}"></script>
+{% endblock %}
