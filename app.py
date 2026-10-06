@@ -106,7 +106,7 @@ LEADERBOARD_METRICS = {
     "views": "total_views",
     "projects": "projects",
 }
-LEADERBOARD_SIZE = 25
+LEADERBOARD_PAGE_SIZE = 10
 HISTORY_DAYS = 365
 
 # BIGINT: view totals for large accounts can pass the 32-bit integer limit.
@@ -246,10 +246,15 @@ def get_history(username):
     ]
 
 
-def get_leaderboard(metric):
+def get_leaderboard(metric, page=1, per_page=LEADERBOARD_PAGE_SIZE):
+    """One page of the ranking. Out-of-range pages are clamped to the nearest valid one."""
     column = LEADERBOARD_METRICS[metric]
+    empty = {"users": [], "page": 1, "pages": 1, "total": 0, "per_page": per_page}
     try:
         with _conn() as conn:
+            total = conn.execute("SELECT COUNT(DISTINCT username) AS n FROM snapshots").fetchone()["n"]
+            pages = max(1, -(-total // per_page))
+            page = min(max(1, page), pages)
             rows = conn.execute(
                 _sql(
                     f"""
@@ -259,16 +264,17 @@ def get_leaderboard(metric):
                     JOIN (SELECT username, MAX(day) AS day FROM snapshots GROUP BY username) latest
                       ON s.username = latest.username AND s.day = latest.day
                     ORDER BY s.{column} DESC, LOWER(s.display_name) ASC
-                    LIMIT ?
+                    LIMIT ? OFFSET ?
                     """
                 ),
-                (LEADERBOARD_SIZE,),
+                (per_page, (page - 1) * per_page),
             ).fetchall()
     except DB_ERRORS:
         logger.exception("Could not read leaderboard")
-        return []
-    return [
+        return empty
+    users = [
         {
+            "rank": (page - 1) * per_page + i,
             "username": r["display_name"],
             "id": r["scratch_id"],
             "updated": r["day"],
@@ -278,8 +284,9 @@ def get_leaderboard(metric):
             "favorites": r["total_favorites"],
             "views": r["total_views"],
         }
-        for r in rows
+        for i, r in enumerate(rows, start=1)
     ]
+    return {"users": users, "page": page, "pages": pages, "total": total, "per_page": per_page}
 
 
 init_db()
@@ -569,7 +576,8 @@ def leaderboard_api():
     metric = request.args.get("metric", "followers")
     if metric not in LEADERBOARD_METRICS:
         return jsonify({"error": "Unknown metric"}), 400
-    return jsonify({"metric": metric, "users": get_leaderboard(metric)})
+    page = request.args.get("page", default=1, type=int) or 1
+    return jsonify({"metric": metric, **get_leaderboard(metric, page)})
 
 
 # Same-origin proxy so the "download as image" export isn't blocked by CORS.
