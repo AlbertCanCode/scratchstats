@@ -744,3 +744,48 @@ footer {
     vertical-align: middle;
     margin-right: 0.6rem;
 }
+
+
+/* --- LEADERBOARD PAGER --- */
+.pager {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.2rem 0 0.4rem;
+}
+
+.pager-gap {
+    color: #888;
+    padding: 0 0.2rem;
+}
+
+.pager .tab-btn:disabled {
+    opacity: 0.35;
+}
+
+
+/* --- AUTOFILL ---
+   Chrome paints autofilled fields with its own light background; keep the dark theme. */
+input {
+    color-scheme: dark;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:active,
+input:autofill {
+    -webkit-text-fill-color: #f0f0f0;
+    caret-color: #f0f0f0;
+    border-color: #333;
+    -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset;
+    box-shadow: 0 0 0 1000px #1a1a1a inset;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+input:-webkit-autofill:focus {
+    border-color: #00ff9f;
+    -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset, 0 0 8px rgba(0, 255, 159, 0.7);
+    box-shadow: 0 0 0 1000px #1a1a1a inset, 0 0 8px rgba(0, 255, 159, 0.7);
+}

@@ -170,7 +170,18 @@
                 img.src = img.dataset.proxy;
             })));
 
-            const canvas = await html2canvas(statsDiv, { backgroundColor: "#101010", scale: 2, useCORS: true });
+            const canvas = await html2canvas(statsDiv, {
+                backgroundColor: "#101010",
+                scale: 2,
+                useCORS: true,
+                // The export works on a copy of the page, which replays the box's
+                // fade-in animation; without this it is captured part-way through.
+                onclone: (clonedDoc) => {
+                    const box = clonedDoc.getElementById("stats");
+                    box.style.animation = "none";
+                    box.style.opacity = "1";
+                },
+            });
             const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
             if (!blob) throw new Error("Image export failed.");
 
